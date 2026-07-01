@@ -1,5 +1,14 @@
 # MTG Multiverse Studio
 
+<div align="center">
+<table width="80%">
+  <tr>
+    <td width="25%" valign="center"><b>MTG Multiverse Studio</b></td>
+    <td width="50%" valign="top">A local-first Magic: The Gathering desktop app — collection manager, deck builder, Artbook & lore-narrative. No cloud, no tracking.</td>
+    <td width="25%" align="center" valign="center">██░░░░░░░░░░ 20%</td>
+  </tr>
+</table>
+
 [![GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-native-orange.svg)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2-ff8400.svg)](https://tauri.app/)

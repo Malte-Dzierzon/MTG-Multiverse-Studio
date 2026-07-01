@@ -1,23 +1,30 @@
-# Node
+# Dependencies
 node_modules/
-dist/
-
-# Tauri / Rust
-src-tauri/target/
-src-tauri/build/
-*.pdb
 
 # Build output
-build/
-out/
+dist/
+src-tauri/target/
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
+# Rust build artifacts
+src-tauri/target/
 
-# Env
-.env
+# Frontend build
+dist/
+
+# Tauri build artifacts
+src-tauri/icons/icon.ico
+src-tauri/icons/icon.icns
