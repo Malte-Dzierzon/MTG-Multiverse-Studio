@@ -43,7 +43,7 @@ impl CardDb {
             keywords: serde_json::from_str(&row.get::<_, String>("keywords")?).unwrap_or_default(),
             rarity: row.get("rarity")?,
             set_id: row.get("set_id")?,
-            image_uris_json: row.get("image_uris")?,
+            image_uris_json: row.get("image_uris_json")?,
             artist: row.get("artist")?,
             legalities: row.get("legalities")?,
             prices: row.get("prices")?,
@@ -54,7 +54,7 @@ impl CardDb {
 // ─── FRONTEND-MODELLE (für Tauri Commands) ────────
 
 /// Card response sent to frontend - simplified from ScryfallCard
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CardResponse {
     pub id: String,
     pub name: String,
@@ -255,4 +255,38 @@ pub struct ImportStats {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportResult {
     pub stats: ImportStats,
+}
+
+// ─── PRICE REFRESH MODELS ─────────────────────────
+
+/// Result of a price refresh operation
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct PriceRefreshResult {
+    pub total: u64,
+    pub updated: u64,
+    pub failed: u64,
+    pub errors: Vec<String>,
+}
+
+// ─── GOLDFISHING / STARTHAND-SIMULATOR ────────────────
+
+/// Goldfishing / Starthand-Simulator result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoldfishResult {
+    pub deck_id: i64,
+    pub deck_name: String,
+    pub starting_hand: Vec<GoldfishCard>,
+    pub draws: Vec<Vec<GoldfishCard>>,
+    pub turns: i32,
+}
+
+/// A card in the goldfishing simulation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoldfishCard {
+    pub card_id: String,
+    pub name: String,
+    pub mana_cost: String,
+    pub cmc: f64,
+    pub type_line: String,
+    pub colors: Vec<String>,
 }

@@ -2,6 +2,7 @@
 //! 
 //! Custom error types and utilities for the application.
 
+use crate::import_engine::collection_import::ImportError;
 use serde::Serialize;
 
 /// Application-specific error type
@@ -25,8 +26,17 @@ pub enum AppError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    #[error("Import error: {0}")]
+    Import(String),
+
     #[error("Unknown error: {0}")]
     Unknown(String),
+}
+
+impl From<ImportError> for AppError {
+    fn from(e: ImportError) -> Self {
+        AppError::Import(e.to_string())
+    }
 }
 
 // ─── From impls ─────────────────────────────────

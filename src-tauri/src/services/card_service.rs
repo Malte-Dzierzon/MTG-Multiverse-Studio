@@ -8,9 +8,8 @@
 use crate::db::card_repo;
 use crate::models::{CardDb, CardResponse};
 use crate::scryfall::client::ScryfallClient;
-use crate::utils::error::{AppError, Result};
+use crate::utils::error::Result;
 use serde_json::json;
-
 /// Search cards — first in local DB, then optionally in Scryfall
 pub fn search_cards_local(
     db: &rusqlite::Connection,

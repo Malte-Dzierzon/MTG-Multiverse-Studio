@@ -3,11 +3,13 @@
 //! Tauri v2 application entry point with database initialization and command registration.
 
 mod db;
+mod market;
 mod models;
 mod scryfall;
 mod services;
 mod utils;
 mod commands;
+mod import_engine;
 
 use tauri::Manager;
 use std::sync::Mutex;
@@ -16,6 +18,8 @@ use std::sync::Mutex;
 struct AppState {
     db: Mutex<rusqlite::Connection>,
     scryfall_client: Mutex<scryfall::client::ScryfallClient>,
+    cardmarket_client: Mutex<market::cardmarket::CardmarketClient>,
+    tcgplayer_client: Mutex<market::tcgplayer::TcgplayerClient>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -34,10 +38,16 @@ pub fn run() {
             // Initialize Scryfall client
             let scryfall_client = scryfall::client::ScryfallClient::new();
             
+            // Initialize market API clients (they gracefully handle missing env vars)
+            let cardmarket_client = market::cardmarket::CardmarketClient::new();
+            let tcgplayer_client = market::tcgplayer::TcgplayerClient::new();
+
             // Manage app state
             app.manage(AppState {
                 db: Mutex::new(db),
                 scryfall_client: Mutex::new(scryfall_client),
+                cardmarket_client: Mutex::new(cardmarket_client),
+                tcgplayer_client: Mutex::new(tcgplayer_client),
             });
             
             tracing::info!("MTG Multiverse Studio initialized successfully");
@@ -56,19 +66,21 @@ pub fn run() {
             commands::delete_deck,
             commands::search_decks,
             commands::validate_deck,
+            commands::goldfish_deck,
             commands::load_lore_entries,
+            commands::get_lore_entry,
+            commands::get_lore_content,
+            commands::search_lore,
             commands::get_deck_mana_curve,
             commands::get_collection,
             commands::search_collection,
             commands::update_collection_item,
             commands::remove_from_collection,
             commands::import_collection,
-        ])
-            commands::remove_card_from_deck,
-            commands::update_deck,
-            commands::delete_deck,
-            commands::search_decks,
-            commands::validate_deck,
+            commands::list_sets,
+            commands::get_set,
+            commands::refresh_prices,
+            commands::get_card_prices,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>MTG Multiverse — Master Design Tokens & Motion Blueprint</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            /* ==========================================================================
+           CORE DESIGN TOKENS (The Definitive Blueprint Variables)
+           ========================================================================== */
+            :root {
+                /* Grundfarben der Applikation */
+                --bg-base: #262425; /* Kern-Dunkelbraun */
+                --bg-surface: #161515; /* Obsidian-Mahagoni */
+                --bg-panel: #1f1d1e; /* Panel Container */
+                --bg-interactive: #2d2a2b; /* Buttons & Interaktionsflächen */
+
+                /* Akzentfarben */
+                --color-parchment: #d9b88f; /* Helles Pergament */
+                --color-leather: #bf8654; /* Warmes Lederbraun */
+                --color-wood: #8c583a; /* Tiefes Holzbraun */
+                --color-crimson: #733030; /* Signalrot */
+
+                /* Text-Schnittstelle */
+                --text-main: #f5f2ed;
+                --text-muted: #8c837e;
+
+                /* DIE PRÄZISE RUNDUNG & BLUR TOKENS */
+                --radius-subtle: 6px; /* Konstante, dezente Rundung */
+                --glass-blur: blur(12px); /* Standard Backdrop-Filter */
+
+                /* Motion Easing Curves */
+                --spring-smooth: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                --spring-fast: all 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+
+            /* Base Reset */
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background-color: var(--bg-base);
+                color: var(--text-main);
+                font-family: "Inter", sans-serif;
+                -webkit-font-smoothing: antialiased;
+                padding-bottom: 120px;
+            }
+
+            .studio-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 0 40px;
+            }
+
+            /* Minimal Header Header */
+            header.studio-header {
+                padding: 60px 0 40px 0;
+                border-bottom: 1px solid rgba(140, 88, 58, 0.15);
+                margin-bottom: 50px;
+            }
+            header.studio-header h1 {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 38px;
+                color: var(--color-parchment);
+                font-weight: 700;
+            }
+            header.studio-header p {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 11px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-top: 5px;
+            }
+
+            section.token-section {
+                margin-bottom: 60px;
+            }
+
+            .section-title {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 11px;
+                color: var(--color-leather);
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-bottom: 24px;
+                border-left: 2px solid var(--color-wood);
+                padding-left: 12px;
+            }
+
+            /* GENERAL CONTAINER SPECIFICATION (Halbdurchsichtiges Blur-Design überall) */
+            .spec-panel {
+                background: rgba(22, 21, 21, 0.65); /* Halbdurchsichtig */
+                backdrop-filter: var(--glass-blur); /* Unschärfe-Filter */
+                -webkit-backdrop-filter: var(--glass-blur);
+                border: 1px solid rgba(140, 88, 58, 0.16); /* Kontrast-Rahmen */
+                border-radius: var(--radius-subtle); /* 6px Eckenrundung */
+                padding: 30px;
+            }
+
+            /* ==========================================================================
+           COMPONENTS: TOKENS MATRIX LAYOUT
+           ========================================================================== */
+            .token-grid-three {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+                gap: 24px;
+            }
+
+            /* Color Chips Stack */
+            .color-palette-bar {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .color-chip {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                border-radius: var(--radius-subtle);
+                font-family: "JetBrains Mono", monospace;
+                font-size: 11px;
+                font-weight: 700;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            /* Typography Block Elements */
+            .typo-spec-box {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .typo-row {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                padding-bottom: 12px;
+            }
+            .typo-row:last-child {
+                border: none;
+                padding-bottom: 0;
+            }
+
+            /* Material / Blur Preview Box */
+            .material-demo-stage {
+                background: linear-gradient(
+                    135deg,
+                    var(--color-wood) 0%,
+                    var(--color-crimson) 100%
+                );
+                border-radius: var(--radius-subtle);
+                padding: 24px;
+                position: relative;
+                overflow: hidden;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .material-floating-glass {
+                background: rgba(22, 21, 21, 0.5);
+                backdrop-filter: var(--glass-blur);
+                -webkit-backdrop-filter: var(--glass-blur);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: var(--radius-subtle);
+                padding: 20px;
+                width: 85%;
+                text-align: center;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            }
+
+            /* ==========================================================================
+           COMPONENTS: MOTION BLUEPRINT LAB (The Card Suite)
+           ========================================================================== */
+            .motion-showcase-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 30px;
+            }
+
+            .motion-card-wrapper {
+                /* Erbt das globale Glassmorphism-Design für Kohärenz */
+                background: rgba(22, 21, 21, 0.65);
+                backdrop-filter: var(--glass-blur);
+                -webkit-backdrop-filter: var(--glass-blur);
+                border: 1px solid rgba(140, 88, 58, 0.16);
+                border-radius: var(--radius-subtle);
+                padding: 35px 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+            .motion-meta-label {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 10px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                text-align: center;
+            }
+
+            /* CARD ANIMATION 02: STACKED FAN-OUT DECK */
+            .card-stack-deck {
+                position: relative;
+                width: 260px;
+                height: 364px;
+            }
+            .stacked-card {
+                position: absolute;
+                inset: 0;
+                transition: var(--spring-smooth);
+                transform-origin: bottom center;
+                pointer-events: none;
+            }
+            .stacked-card:nth-child(1) {
+                transform: translate3d(-12px, 8px, -20px) rotate(-5deg);
+                opacity: 0.4;
+                z-index: 1;
+            }
+            .stacked-card:nth-child(2) {
+                transform: translate3d(10px, -4px, -10px) rotate(3deg);
+                opacity: 0.7;
+                z-index: 2;
+            }
+            .stacked-card:nth-child(3) {
+                transform: translate3d(0, 0, 0);
+                z-index: 3;
+            }
+
+            /* Interaktives Auffächern im Raum */
+            .card-stack-deck:hover .stacked-card:nth-child(1) {
+                transform: translate3d(-85px, -10px, 10px) rotate(-12deg);
+                opacity: 0.8;
+            }
+            .card-stack-deck:hover .stacked-card:nth-child(2) {
+                transform: translate3d(0px, -20px, 20px) rotate(-2deg);
+                opacity: 0.9;
+            }
+            .card-stack-deck:hover .stacked-card:nth-child(3) {
+                transform: translate3d(85px, -8px, 40px) rotate(10deg);
+            }
+
+            /* CARD ANIMATION 03: HOLO LEVITATION + FLYING SHADOW */
+            .holo-levitate-container {
+                perspective: 1000px;
+                width: 260px;
+                height: 364px;
+                position: relative;
+            }
+            .holo-card {
+                width: 100%;
+                height: 100%;
+                transition: var(--spring-smooth);
+                position: relative;
+                z-index: 2;
+            }
+            .holo-shadow-proxy {
+                position: absolute;
+                width: 90%;
+                height: 14px;
+                background: rgba(0, 0, 0, 0.7);
+                bottom: -12px;
+                left: 5%;
+                filter: blur(12px);
+                border-radius: 50%;
+                opacity: 0.8;
+                transition: var(--spring-smooth);
+                pointer-events: none;
+            }
+
+            .holo-levitate-container:hover .holo-card {
+                transform: translateY(-22px) scale(1.03);
+            }
+            .holo-levitate-container:hover .holo-shadow-proxy {
+                transform: scaleY(0.4) translateY(18px);
+                opacity: 0.35;
+                filter: blur(16px);
+            }
+
+            /* Foil Schimmer-Effekt */
+            .holo-card::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 10px;
+                background: linear-gradient(
+                    135deg,
+                    transparent 30%,
+                    rgba(255, 255, 255, 0.14) 45%,
+                    rgba(217, 184, 143, 0.18) 50%,
+                    rgba(115, 48, 48, 0.14) 55%,
+                    transparent 70%
+                );
+                background-size: 300% 300%;
+                background-position: 0% 0%;
+                transition: var(--spring-smooth);
+                pointer-events: none;
+                z-index: 6;
+                opacity: 0;
+            }
+            .holo-levitate-container:hover .holo-card::after {
+                opacity: 1;
+                background-position: 100% 100%;
+            }
+
+            /* CARD ANIMATION 04: INTERACTIVE 3D FLIP MATRICES */
+            .flip-stage {
+                perspective: 1500px;
+                width: 260px;
+                height: 364px;
+                cursor: pointer;
+            }
+            .flip-card-card {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                transform-style: preserve-3d;
+                transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .flip-stage.flipped .flip-card-card {
+                transform: rotateY(180deg);
+            }
+            .card-face {
+                position: absolute;
+                inset: 0;
+                backface-visibility: hidden;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            .card-face-back {
+                transform: rotateY(180deg);
+                background: #110f10;
+                border: 3px solid var(--color-wood);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .card-back-art {
+                width: calc(100% - 16px);
+                height: calc(100% - 16px);
+                border: 1px dashed var(--color-leather);
+                background: radial-gradient(
+                    circle,
+                    var(--color-crimson) 20%,
+                    #161515 80%
+                );
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* ==========================================================================
+           DIE ORIGINAL MTG INTEGRITÄT (Unberührte Proportionen)
+           ========================================================================== */
+            .card-container {
+                perspective: 1200px;
+                width: 260px;
+                height: 364px;
+            }
+            .mtg-card-blueprint {
+                width: 100%;
+                height: 100%;
+                background: #110f10;
+                border-radius: 10px;
+                padding: 10px;
+                position: relative;
+                transform-style: preserve-3d;
+                transition:
+                    transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                    box-shadow 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+                cursor: pointer;
+            }
+            .mtg-card-blueprint:hover {
+                box-shadow: 0 25px 55px rgba(0, 0, 0, 0.8);
+            }
+            .glare-effect {
+                position: absolute;
+                inset: 0;
+                border-radius: 10px;
+                background: radial-gradient(
+                    circle at 50% 50%,
+                    rgba(255, 255, 255, 0.12),
+                    transparent 50%
+                );
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease;
+                z-index: 5;
+            }
+            .card-inner-frame {
+                width: 100%;
+                height: 100%;
+                border: 1px solid var(--color-wood);
+                background: linear-gradient(145deg, var(--bg-base), #1c1a1b);
+                border-radius: 2px;
+                padding: 5px;
+                display: flex;
+                flex-direction: column;
+                transform-style: preserve-3d;
+            }
+            .card-row-box {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: linear-gradient(
+                    to right,
+                    var(--color-parchment),
+                    #bf9f75
+                );
+                border: 1px solid var(--color-wood);
+                border-radius: 12px;
+                padding: 2px 8px;
+                color: #1a191a;
+                font-size: 12px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .card-row-box h4 {
+                font-family: "Cormorant Garamond", serif;
+                font-weight: 700;
+            }
+            .card-photo-box {
+                flex: 1;
+                margin: 5px 0;
+                background: #110f10;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transform: translateZ(22px);
+                transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+            .card-photo-box::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=500")
+                    center/cover;
+                filter: grayscale(20%) sepia(10%);
+                opacity: 0.8;
+                transition: var(--spring-smooth);
+            }
+            .photo-label {
+                position: relative;
+                z-index: 2;
+                font-family: "JetBrains Mono", monospace;
+                font-size: 9px;
+                background: var(--color-crimson);
+                color: #fff;
+                padding: 2px 8px;
+                border-radius: var(--radius-subtle);
+                letter-spacing: 1px;
+            }
+            .card-text-box {
+                height: 35%;
+                background: #dfd7cb;
+                border: 1px solid var(--color-wood);
+                padding: 6px;
+                color: #262425;
+                font-size: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .rules-text {
+                font-family: "Inter", sans-serif;
+                line-height: 1.3;
+                font-weight: 500;
+            }
+            .flavor-text {
+                font-family: "Cormorant Garamond", serif;
+                font-style: italic;
+                color: #574e46;
+                border-top: 1px solid #c5b9a8;
+                padding-top: 4px;
+                margin-top: auto;
+            }
+            .pt-badge {
+                position: absolute;
+                bottom: -4px;
+                right: 4px;
+                background: var(--color-parchment);
+                border: 1px solid var(--color-wood);
+                color: #262425;
+                font-family: "JetBrains Mono", monospace;
+                font-weight: 700;
+                font-size: 10px;
+                padding: 1px 6px;
+                border-radius: 4px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+                transform: translateZ(15px);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="studio-container">
+            <header class="studio-header">
+                <h1>Master Design System & Motion Specification</h1>
+                <p>Unified Architectural Blueprint for Framework Synthesis</p>
+            </header>
+
+            <section class="token-section">
+                <div class="section-title">01 // Visual Spec Tokens</div>
+
+                <div class="token-grid-three">
+                    <div class="spec-panel">
+                        <span
+                            class="motion-meta-label"
+                            style="
+                                display: block;
+                                text-align: left;
+                                margin-bottom: 15px;
+                            "
+                            >System Application Colors</span
+                        >
+                        <div class="color-palette-bar">
+                            <div
+                                class="color-chip"
+                                style="
+                                    background-color: #262425;
+                                    color: #f5f2ed;
+                                "
+                            >
+                                Base Dunkelbraun — #262425
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="
+                                    background-color: #161515;
+                                    color: #f5f2ed;
+                                "
+                            >
+                                Surface Obsidian — #161515
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="
+                                    background-color: #1f1d1e;
+                                    color: #f5f2ed;
+                                "
+                            >
+                                Panel Background — #1f1d1e
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="
+                                    background-color: #2d2a2b;
+                                    color: #f5f2ed;
+                                "
+                            >
+                                Interactive Control — #2d2a2b
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="background-color: #d9b88f; color: #000"
+                            >
+                                Parchment Light — #D9B88F
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="background-color: #bf8654; color: #000"
+                            >
+                                Leather Accent — #BF8654
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="background-color: #8c583a; color: #fff"
+                            >
+                                Wood Framer — #8C583A
+                            </div>
+                            <div
+                                class="color-chip"
+                                style="background-color: #733030; color: #fff"
+                            >
+                                Crimson Core — #733030
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-panel typo-spec-box">
+                        <span
+                            class="motion-meta-label"
+                            style="
+                                display: block;
+                                text-align: left;
+                                margin-bottom: 5px;
+                            "
+                            >Typographic Scale Roles</span
+                        >
+
+                        <div class="typo-row">
+                            <span
+                                class="motion-meta-label"
+                                style="
+                                    font-size: 9px;
+                                    color: var(--color-leather);
+                                "
+                                >Serif Display (Cormorant Garamond)</span
+                            >
+                            <h2
+                                style="
+                                    font-size: 26px;
+                                    color: var(--color-parchment);
+                                    margin: 0;
+                                "
+                            >
+                                Ancient Legend Vault
+                            </h2>
+                        </div>
+
+                        <div class="typo-row">
+                            <span
+                                class="motion-meta-label"
+                                style="
+                                    font-size: 9px;
+                                    color: var(--color-leather);
+                                "
+                                >Sans UI Main (Inter)</span
+                            >
+                            <p
+                                style="
+                                    font-size: 13px;
+                                    font-weight: 500;
+                                    line-height: 1.4;
+                                "
+                            >
+                                Flying. When this creature enters the
+                                battlefield, trigger cache reload.
+                            </p>
+                        </div>
+
+                        <div class="typo-row">
+                            <span
+                                class="motion-meta-label"
+                                style="
+                                    font-size: 9px;
+                                    color: var(--color-leather);
+                                "
+                                >Data Mono (JetBrains Mono)</span
+                            >
+                            <p
+                                style="
+                                    font-family:
+                                        &quot;JetBrains Mono&quot;, monospace;
+                                    font-size: 11px;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                SYS_LOG_ENV: 0x7FFF9D2A
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="spec-panel"
+                        style="display: flex; flex-direction: column; gap: 15px"
+                    >
+                        <span
+                            class="motion-meta-label"
+                            style="display: block; text-align: left"
+                            >Material Contrast & 6px Corners</span
+                        >
+
+                        <div class="material-demo-stage">
+                            <div class="material-floating-glass">
+                                <span
+                                    class="motion-meta-label"
+                                    style="color: var(--color-parchment)"
+                                    >Backdrop Blur Glass</span
+                                >
+                                <p
+                                    style="
+                                        font-size: 11px;
+                                        margin-top: 4px;
+                                        color: rgba(255, 255, 255, 0.85);
+                                    "
+                                >
+                                    Radius: 6px<br />Blur: 12px<br />Alpha
+                                    Opacity: 65%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="token-section">
+                <div class="section-title">02 // Core Motion Blueprints</div>
+
+                <div class="motion-showcase-grid">
+                    <div class="motion-card-wrapper">
+                        <span class="motion-meta-label"
+                            >01 // Damped 3D Tilt</span
+                        >
+
+                        <div class="card-container runtime-card">
+                            <div class="mtg-card-blueprint">
+                                <div class="glare-effect"></div>
+                                <div class="card-inner-frame">
+                                    <div class="card-row-box">
+                                        <h4>Parallax-Knoten</h4>
+                                        <span
+                                            >3
+                                            <span
+                                                style="
+                                                    color: var(--color-crimson);
+                                                "
+                                                >♦</span
+                                            ></span
+                                        >
+                                    </div>
+                                    <div class="card-photo-box">
+                                        <span class="photo-label"
+                                            >TILT UNIT</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="card-row-box"
+                                        style="margin-bottom: 4px"
+                                    >
+                                        <span style="font-size: 11px"
+                                            >Creature — Matrix</span
+                                        >
+                                    </div>
+                                    <div class="card-text-box">
+                                        <p class="rules-text">
+                                            Mausbewegung neigt die Achsen und
+                                            verschiebt das Artwork im Raum.
+                                        </p>
+                                        <div class="pt-badge">2 / 4</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="motion-card-wrapper">
+                        <span class="motion-meta-label"
+                            >02 // Tactile Fan-Out Stack</span
+                        >
+
+                        <div class="card-stack-deck">
+                            <div class="stacked-card">
+                                <div
+                                    class="mtg-card-blueprint"
+                                    style="cursor: default"
+                                >
+                                    <div class="card-inner-frame">
+                                        <div class="card-row-box">
+                                            <h4>Deck Layer C</h4>
+                                            <span>0</span>
+                                        </div>
+                                        <div class="card-photo-box"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stacked-card">
+                                <div
+                                    class="mtg-card-blueprint"
+                                    style="cursor: default"
+                                >
+                                    <div class="card-inner-frame">
+                                        <div class="card-row-box">
+                                            <h4>Deck Layer B</h4>
+                                            <span>0</span>
+                                        </div>
+                                        <div class="card-photo-box"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stacked-card">
+                                <div
+                                    class="mtg-card-blueprint"
+                                    style="cursor: default"
+                                >
+                                    <div class="card-inner-frame">
+                                        <div class="card-row-box">
+                                            <h4>Deck Layer A</h4>
+                                            <span>0</span>
+                                        </div>
+                                        <div class="card-photo-box"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="motion-card-wrapper">
+                        <span class="motion-meta-label"
+                            >03 // Holo Foil Levitation</span
+                        >
+
+                        <div class="holo-levitate-container">
+                            <div class="holo-card mtg-card-blueprint">
+                                <div class="card-inner-frame">
+                                    <div class="card-row-box">
+                                        <h4>Foil-Chronistin</h4>
+                                        <span
+                                            >2
+                                            <span
+                                                style="
+                                                    color: var(--color-crimson);
+                                                "
+                                                >♦</span
+                                            ></span
+                                        >
+                                    </div>
+                                    <div class="card-photo-box">
+                                        <span class="photo-label"
+                                            >HOLO PROXY</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="card-row-box"
+                                        style="margin-bottom: 4px"
+                                    >
+                                        <span style="font-size: 11px"
+                                            >Sorcery</span
+                                        >
+                                    </div>
+                                    <div class="card-text-box">
+                                        <p class="rules-text">
+                                            Hebt sich bei Hover physisch ab und
+                                            bricht den Schatten tief nach unten.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="holo-shadow-proxy"></div>
+                        </div>
+                    </div>
+
+                    <div class="motion-card-wrapper">
+                        <span class="motion-meta-label"
+                            >04 // 3D Card Flip Node</span
+                        >
+
+                        <div class="flip-stage" id="flipStage">
+                            <div class="flip-card-card">
+                                <div class="card-face">
+                                    <div
+                                        class="mtg-card-blueprint"
+                                        style="pointer-events: none"
+                                    >
+                                        <div class="card-inner-frame">
+                                            <div class="card-row-box">
+                                                <h4>Wende-Magier</h4>
+                                                <span>1</span>
+                                            </div>
+                                            <div class="card-photo-box"></div>
+                                            <div class="card-text-box">
+                                                <p class="rules-text">
+                                                    Ein Klick wendet die Karte
+                                                    nahtlos um 180 Grad im Raum.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-face card-face-back">
+                                    <div class="card-back-art">
+                                        <span
+                                            style="
+                                                font-family: &quot;Cormorant Garamond&quot;;
+                                                color: var(--color-parchment);
+                                                font-weight: 700;
+                                                font-size: 18px;
+                                                letter-spacing: 2px;
+                                            "
+                                            >M:TG MATRIX</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script>
+            // --- 1. INTERACTIVE 3D CARD FLIP MATRIX ---
+            document
+                .getElementById("flipStage")
+                .addEventListener("click", function () {
+                    this.classList.toggle("flipped");
+                });
+
+            // --- 2. HIGH-END PARALLAX 3D TILT ENGINE (Interpolated & Smooth) ---
+            document.querySelectorAll(".runtime-card").forEach((container) => {
+                const body = container.querySelector(".mtg-card-blueprint");
+                const glare = container.querySelector(".glare-effect");
+                const photo = container.querySelector(".card-photo-box");
+
+                container.addEventListener("mousemove", (e) => {
+                    const rect = container.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    // Trägheits-Dämpfung auf maximal 12 Grad Rotation
+                    const rotateX =
+                        ((y - rect.height / 2) / (rect.height / 2)) * -12;
+                    const rotateY =
+                        ((x - rect.width / 2) / (rect.width / 2)) * 12;
+
+                    body.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+                    if (glare) {
+                        glare.style.opacity = "1";
+                        glare.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.15), transparent 50%)`;
+                    }
+                    if (photo) {
+                        photo.style.transform = `translateZ(22px) translateX(${rotateY * -0.2}px) translateY(${rotateX * 0.2}px)`;
+                    }
+                });
+
+                container.addEventListener("mouseleave", () => {
+                    body.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                    if (glare) glare.style.opacity = "0";
+                    if (photo)
+                        photo.style.transform = `translateZ(22px) translateX(0px) translateY(0px)`;
+                });
+            });
+        </script>
+    </body>
+</html>

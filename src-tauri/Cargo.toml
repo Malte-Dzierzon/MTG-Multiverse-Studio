@@ -19,6 +19,12 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 reqwest = { version = "0.11", features = ["json", "stream", "rustls-tls"], default-features = false }
 tokio = { version = "1", features = ["full"] }
 
+# === API Authentication (Cardmarket OAuth 1.0a, TCGPlayer) ===
+hmac = "0.12"
+sha1 = "0.10"
+base64 = "0.22"
+percent-encoding = "2"
+
 # === Streaming & Compression (Bulk Import) ===
 flate2 = "1.0"
 clap = { version = "4", features = ["derive"] }
@@ -33,6 +39,9 @@ serde_yaml = "0.9"
 frontmatter = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 
+# === Random number generation (für Goldfishing) ===
+rand = "0.8"
+
 # === Logging/Debugging ===
 tracing = { version = "0.1", features = ["release_max_level_info"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -42,6 +51,9 @@ thiserror = "1.0"
 # candle-core = { version = "0.x", optional = true }
 # candle-transformers = { version = "0.x", optional = true }
 # candle-nn = { version = "0.x", optional = true }
+
+[dev-dependencies]
+tempfile = "3"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

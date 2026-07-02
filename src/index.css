@@ -1,0 +1,567 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   MTG MULTIVERSE STUDIO — DESIGN TOKENS (Tailwind v4 @theme)
+   Basiert auf test.html Design-Spec
+   ========================================================================== */
+
+@theme {
+  /* ─── Farben ────────────────────────────────────────────────────────────── */
+
+  /* Base / Background */
+  --color-bg-base: #262425;
+  --color-bg-surface: #161515;
+  --color-bg-panel: #1f1d1e;
+  --color-bg-interactive: #2d2a2b;
+
+  /* Accent */
+  --color-parchment: #d9b88f;
+  --color-leather: #bf8654;
+  --color-wood: #8c583a;
+  --color-crimson: #733030;
+
+  /* Text */
+  --color-text-main: #f5f2ed;
+  --color-text-muted: #8c837e;
+
+  /* ─── Fonts ────────────────────────────────────────────────────────────── */
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* ─── Radius ───────────────────────────────────────────────────────────── */
+  --radius-subtle: 6px;
+  --radius-card: 10px;
+
+  /* ─── Glassmorphism ────────────────────────────────────────────────────── */
+  --glass-blur: blur(12px);
+  --glass-bg: rgba(22, 21, 21, 0.65);
+  --glass-border: rgba(140, 88, 58, 0.16);
+  --glass-border-strong: rgba(255, 255, 255, 0.12);
+
+  /* ─── Motion / Easing ──────────────────────────────────────────────────── */
+  --ease-spring-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring-fast: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-smooth: 500ms;
+  --duration-fast: 220ms;
+
+  /* ─── Shadows ───────────────────────────────────────────────────────────── */
+  --shadow-card: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 25px 55px rgba(0, 0, 0, 0.8);
+  --shadow-glass: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-main);
+    min-height: 100vh;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-surface);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-bg-interactive);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-wood);
+  }
+}
+
+/* ==========================================================================
+   GLASSMORPHISM UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-subtle);
+  }
+
+  .glass-panel-strong {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border-strong);
+    border-radius: var(--radius-subtle);
+  }
+
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-card-hover:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  .text-main {
+    color: var(--color-text-main);
+  }
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+  .text-parchment {
+    color: var(--color-parchment);
+  }
+  .text-leather {
+    color: var(--color-leather);
+  }
+  .text-wood {
+    color: var(--color-wood);
+  }
+  .text-crimson {
+    color: var(--color-crimson);
+  }
+
+  .heading-1 {
+    font-family: var(--font-serif);
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--color-parchment);
+  }
+  .heading-2 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--color-text-main);
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--color-leather);
+  }
+  .caption {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-muted);
+  }
+}
+
+/* ==========================================================================
+   MOTION / ANIMATION UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .transition-smooth {
+    transition: all var(--duration-smooth) var(--ease-spring-smooth);
+  }
+  .transition-fast {
+    transition: all var(--duration-fast) var(--ease-spring-fast);
+  }
+
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Card fan-out stagger */
+  .fan-card:nth-child(1) { transition-delay: 0ms; }
+  .fan-card:nth-child(2) { transition-delay: 40ms; }
+  .fan-card:nth-child(3) { transition-delay: 80ms; }
+  .fan-card:nth-child(4) { transition-delay: 120ms; }
+  .fan-card:nth-child(5) { transition-delay: 160ms; }
+
+  /* Page transitions */
+  .page-enter {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  .page-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity var(--duration-smooth) var(--ease-spring-smooth),
+                transform var(--duration-smooth) var(--ease-spring-smooth);
+  }
+  .page-exit {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .page-exit-active {
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity var(--duration-fast) var(--ease-spring-fast),
+                transform var(--duration-fast) var(--ease-spring-fast);
+  }
+}
+
+/* ==========================================================================
+   MTG CARD SPECIFIC UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .mtg-card-frame {
+    width: 260px;
+    height: 364px;
+    perspective: 1200px;
+  }
+
+  .mtg-card-inner {
+    width: 100%;
+    height: 100%;
+    background: #110f10;
+    border-radius: var(--radius-card);
+    padding: 10px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 250ms var(--ease-spring-fast),
+                box-shadow 250ms var(--ease-spring-fast);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+  }
+
+  .mtg-card-inner:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .mtg-card-inner.levitate:hover {
+    transform: translateY(-22px) scale(1.03);
+  }
+
+  .mtg-card-glare {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.12),
+      transparent 50%
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 5;
+  }
+  .mtg-card-inner:hover .mtg-card-glare {
+    opacity: 1;
+  }
+
+  .mtg-card-border {
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--color-wood);
+    background: linear-gradient(145deg, var(--color-bg-base), #1c1a1b);
+    border-radius: 2px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    transform-style: preserve-3d;
+  }
+
+  .mtg-mana-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, var(--color-parchment), #bf9f75);
+    border: 1px solid var(--color-wood);
+    border-radius: 12px;
+    padding: 2px 8px;
+    color: #1a191a;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .mtg-mana-row h4 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
+
+  .mtg-art-box {
+    flex: 1;
+    margin: 5px 0;
+    background: #110f10;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateZ(22px);
+    transition: transform 250ms var(--ease-spring-fast);
+  }
+
+  .mtg-art-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    filter: grayscale(20%) sepia(10%);
+    opacity: 0.8;
+    transition: all var(--duration-smooth) var(--ease-spring-smooth);
+  }
+
+  .mtg-text-box {
+    height: 35%;
+    background: #dfd7cb;
+    border: 1px solid var(--color-wood);
+    padding: 6px;
+    color: #262425;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mtg-rules-text {
+    font-family: var(--font-sans);
+    line-height: 1.3;
+    font-weight: 500;
+  }
+
+  .mtg-flavor-text {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: #574e46;
+    border-top: 1px solid #c5b9a8;
+    padding-top: 4px;
+    margin-top: auto;
+  }
+
+  .mtg-pt-badge {
+    position: absolute;
+    bottom: -4px;
+    right: 4px;
+    background: var(--color-parchment);
+    border: 1px solid var(--color-wood);
+    color: #262425;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* Holo foil shimmer effect */
+  .mtg-foil-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+    background: linear-gradient(
+      135deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.14) 45%,
+      rgba(217, 184, 143, 0.18) 50%,
+      rgba(115, 48, 48, 0.14) 55%,
+      transparent 70%
+    );
+    background-size: 300% 300%;
+    background-position: 0% 0%;
+    transition: all var(--duration-smooth) var(--ease-spring-smooth);
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0;
+  }
+  .mtg-foil-shimmer:hover::after {
+    opacity: 1;
+    background-position: 100% 100%;
+  }
+
+  /* Card flip animation */
+  .mtg-flip-stage {
+    perspective: 1500px;
+    width: 260px;
+    height: 364px;
+    cursor: pointer;
+  }
+  .mtg-flip-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 650ms var(--ease-spring-smooth);
+  }
+  .mtg-flip-stage.flipped .mtg-flip-card {
+    transform: rotateY(180deg);
+  }
+  .mtg-card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+  .mtg-card-face-back {
+    transform: rotateY(180deg);
+    background: #110f10;
+    border: 3px solid var(--color-wood);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   HOVER LEVITATION CONTAINER (for deck previews)
+   ========================================================================== */
+
+@layer utilities {
+  .levitate-container {
+    perspective: 1000px;
+    position: relative;
+  }
+  .levitate-card {
+    width: 100%;
+    height: 100%;
+    transition: all var(--duration-smooth) var(--ease-spring-smooth);
+    position: relative;
+    z-index: 2;
+  }
+  .levitate-shadow {
+    position: absolute;
+    width: 90%;
+    height: 14px;
+    background: rgba(0, 0, 0, 0.7);
+    bottom: -12px;
+    left: 5%;
+    filter: blur(12px);
+    border-radius: 50%;
+    opacity: 0.8;
+    transition: all var(--duration-smooth) var(--ease-spring-smooth);
+    pointer-events: none;
+  }
+  .levitate-container:hover .levitate-card {
+    transform: translateY(-22px) scale(1.03);
+  }
+  .levitate-container:hover .levitate-shadow {
+    transform: scaleY(0.4) translateY(18px);
+    opacity: 0.35;
+    filter: blur(16px);
+  }
+}
+
+/* ==========================================================================
+   STACKED FAN-OUT DECK PREVIEW
+   ========================================================================== */
+
+@layer utilities {
+  .deck-stack {
+    position: relative;
+    width: 260px;
+    height: 364px;
+  }
+  .stacked-card {
+    position: absolute;
+    inset: 0;
+    transition: all var(--duration-smooth) var(--ease-spring-smooth);
+    transform-origin: bottom center;
+    pointer-events: none;
+  }
+  .deck-stack:hover .stacked-card:nth-child(1) {
+    transform: translate3d(-85px, -10px, 10px) rotate(-12deg);
+    opacity: 0.8;
+  }
+  .deck-stack:hover .stacked-card:nth-child(2) {
+    transform: translate3d(0px, -20px, 20px) rotate(-2deg);
+    opacity: 0.9;
+  }
+  .deck-stack:hover .stacked-card:nth-child(3) {
+    transform: translate3d(85px, -8px, 40px) rotate(10deg);
+  }
+  .deck-stack:hover .stacked-card:nth-child(4) {
+    transform: translate3d(-120px, 5px, 30px) rotate(-15deg);
+    opacity: 0.7;
+  }
+  .deck-stack:hover .stacked-card:nth-child(5) {
+    transform: translate3d(120px, 0px, 50px) rotate(12deg);
+    opacity: 0.6;
+  }
+}
+
+/* ==========================================================================
+   FOCUS STATES (Accessibility)
+   ========================================================================== */
+
+@layer utilities {
+  .focus-ring:focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-color: var(--color-parchment);
+    ring-offset: 2px;
+    ring-offset-color: var(--color-bg-base);
+  }
+}
+
+/* ==========================================================================
+   COMMAND PALETTE STYLES
+   ========================================================================== */
+
+@layer utilities {
+  .cmd-palette-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    animation: fade-in 150ms var(--ease-spring-fast);
+  }
+  .cmd-palette-window {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 640px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-subtle);
+    box-shadow: 0 25px 55px rgba(0, 0, 0, 0.8);
+    z-index: 101;
+    animation: slide-down 200ms var(--ease-spring-smooth);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

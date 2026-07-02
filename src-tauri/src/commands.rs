@@ -7,8 +7,9 @@ use tauri::command;
 use tauri::Manager;
 
 use crate::db::{card_repo, collection_repo, deck_repo, lore_repo};
+use crate::import_engine::collection_import;
 use crate::models::*;
-use crate::services::{card_service, deck_service, lore_service};
+use crate::services::{card_service, deck_service, lore_service, price_service};
 use crate::utils::error::{AppError, Result};
 use crate::AppState;
 
@@ -29,6 +30,8 @@ pub struct AddToCollectionArgs {
     pub card_id: String,
     pub quantity: Option<i32>,
     pub condition: Option<String>,
+    pub language: Option<String>,
+    pub is_foil: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -36,6 +39,12 @@ pub struct CreateDeckArgs {
     pub name: String,
     pub format: Option<String>,
     pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GoldfishDeckArgs {
+    pub deck_id: i64,
+    pub turns: Option<i32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,15 +110,20 @@ pub fn add_to_collection(
 
     let quantity = args.quantity.unwrap_or(1);
     let condition = args.condition.unwrap_or_else(|| "nm".to_string());
+    let language = args.language.unwrap_or_else(|| "en".to_string());
+    let is_foil = args.is_foil.unwrap_or(false);
 
-    collection_repo::add_to_collection(&db, &args.card_id, quantity, &condition)?;
+    collection_repo::add_to_collection(&db, &args.card_id, quantity, &condition, &language, is_foil)?;
 
     Ok(CollectionItemResponse {
         id: 0,
         card: card_repo::card_db_to_response_with_conn(&db, &card_db),
         quantity,
         condition,
+        language,
+        is_foil,
         notes: None,
+        acquired_at: None,
         added_at: chrono::Utc::now().naive_utc().to_string(),
     })
 }
@@ -254,12 +268,9 @@ pub fn search_decks(
     Ok(result)
 }
 
-/// Deck-Legalität gegen ein Format prüfen
+/// Deck-Legalität gegen ein Format prüfen (erweiterte Prüfung)
 #[command]
-pub fn validate_deck(
-    app: tauri::AppHandle,
-    id: i64,
-) -> Result<DeckValidationResponse> {
+pub fn validate_deck(app: tauri::AppHandle, id: i64) -> Result<DeckValidationResponse> {
     let state = app.state::<AppState>();
     let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
 
@@ -267,15 +278,21 @@ pub fn validate_deck(
         .ok_or_else(|| AppError::NotFound(format!("Deck {} nicht gefunden", id)))?;
 
     let format = deck.format.unwrap_or_else(|| "commander".to_string());
-    let card_count = deck_repo::count_deck_cards(&db, id)?;
-    let issues = deck_repo::validate_deck_legality(&db, id, &format)?;
 
-    Ok(DeckValidationResponse {
-        valid: issues.is_empty(),
-        format,
-        card_count,
-        issues,
-    })
+    deck_service::validate_deck_format(&db, id, &format)
+}
+
+/// Starthand und Züge simulieren (Goldfishing) für ein Deck
+#[command]
+pub fn goldfish_deck(
+    app: tauri::AppHandle,
+    args: GoldfishDeckArgs,
+) -> Result<GoldfishResult> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let turns = args.turns.unwrap_or(3);
+    deck_service::goldfish_deck(&db, args.deck_id, turns)
 }
 
 /// Lore-Einträge laden (aus DB + optional aus assets/stories/ Verzeichnis)
@@ -418,4 +435,354 @@ pub fn get_set(
     })?;
 
     Ok(set)
+}
+
+// ─── COLLECTION COMMANDS ─────────────────────────────────
+
+/// Get paginated collection items
+#[command]
+pub fn get_collection(
+    app: tauri::AppHandle,
+    page: Option<u64>,
+    per_page: Option<u64>,
+) -> Result<CollectionResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let p = page.unwrap_or(1);
+    let pp = per_page.unwrap_or(50);
+
+    let total = collection_repo::get_collection_count(&db)?;
+    let items_raw = collection_repo::get_collection(&db, p, pp)?;
+
+    let mut items = Vec::with_capacity(items_raw.len());
+    for item in items_raw {
+        let card_db = card_repo::get_card_by_id(&db, &item.card_id)
+            .ok()
+            .flatten();
+        let card = card_db
+            .as_ref()
+            .map(|c| card_repo::card_db_to_response_with_conn(&db, c))
+            .unwrap_or_default();
+        items.push(CollectionItemResponse {
+            id: item.id,
+            card,
+            quantity: item.quantity,
+            condition: item.condition,
+            notes: item.notes,
+            added_at: item.added_at,
+            language: item.language,
+            is_foil: item.is_foil,
+            acquired_at: item.acquired_at,
+        });
+    }
+
+    Ok(CollectionResponse {
+        items,
+        total,
+        page: p,
+        per_page: pp,
+    })
+}
+
+/// Search collection items by card name
+#[command]
+pub fn search_collection(
+    app: tauri::AppHandle,
+    query: String,
+) -> Result<Vec<CollectionItemResponse>> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let items_raw = collection_repo::search_collection(&db, &query)?;
+
+    let mut items = Vec::with_capacity(items_raw.len());
+    for item in items_raw {
+        let card_db = card_repo::get_card_by_id(&db, &item.card_id)
+            .ok()
+            .flatten();
+        let card = card_db
+            .as_ref()
+            .map(|c| card_repo::card_db_to_response_with_conn(&db, c))
+            .unwrap_or_default();
+        items.push(CollectionItemResponse {
+            id: item.id,
+            card,
+            quantity: item.quantity,
+            condition: item.condition,
+            notes: item.notes,
+            added_at: item.added_at,
+            language: item.language,
+            is_foil: item.is_foil,
+            acquired_at: item.acquired_at,
+        });
+    }
+
+    Ok(items)
+}
+
+/// Update a collection item's quantity, condition, and notes
+#[command]
+pub fn update_collection_item(
+    app: tauri::AppHandle,
+    id: i64,
+    quantity: Option<i32>,
+    condition: Option<String>,
+    notes: Option<String>,
+) -> Result<CollectionItemResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let existing = collection_repo::get_collection_item(&db, id)?
+        .ok_or_else(|| AppError::NotFound(format!("Collection item {} nicht gefunden", id)))?;
+
+    let new_qty = quantity.unwrap_or(existing.quantity);
+    let new_cond = condition.unwrap_or(existing.condition);
+
+    collection_repo::update_collection_item(&db, id, new_qty, &new_cond, notes.as_deref())?;
+
+    let updated = collection_repo::get_collection_item(&db, id)?
+        .ok_or_else(|| AppError::NotFound("Item disappeared after update".into()))?;
+
+    let card_db = card_repo::get_card_by_id(&db, &updated.card_id)
+        .ok()
+        .flatten();
+    let card = card_db
+        .as_ref()
+        .map(|c| card_repo::card_db_to_response_with_conn(&db, c))
+        .unwrap_or_default();
+
+    Ok(CollectionItemResponse {
+        id: updated.id,
+        card,
+        quantity: updated.quantity,
+        condition: updated.condition,
+        notes: updated.notes,
+        added_at: updated.added_at,
+        language: updated.language,
+        is_foil: updated.is_foil,
+        acquired_at: updated.acquired_at,
+    })
+}
+
+/// Remove a card from collection
+#[command]
+pub fn remove_from_collection(
+    app: tauri::AppHandle,
+    id: i64,
+) -> Result<()> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    collection_repo::remove_from_collection(&db, id)?;
+    Ok(())
+}
+
+/// Import collection data from text (CSV, MTGA, Moxfield, Archidekt)
+#[command]
+pub fn import_collection(
+    app: tauri::AppHandle,
+    format: String,
+    data: String,
+) -> Result<ImportResult> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let parsed = match format.as_str() {
+        "csv" => collection_import::parse_csv(&data)?,
+        "mtga" => collection_import::parse_mtga(&data)?,
+        "moxfield" => collection_import::parse_moxfield_json(&data)?,
+        "archidekt" => collection_import::parse_archidekt_json(&data)?,
+        _ => return Err(AppError::Validation(format!("Unknown format: {}", format))),
+    };
+
+    let stats = collection_repo::import_collection_batch(&db, &parsed)?;
+
+    Ok(ImportResult { stats })
+}
+
+// ─── LORE COMMANDS ─────────────────────────────────────────
+
+/// Get a single lore entry with HTML-converted content
+#[command]
+pub fn get_lore_entry(
+    app: tauri::AppHandle,
+    id: i64,
+) -> Result<LoreEntryResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let lore = lore_repo::get_lore_entry_by_id(&db, id)?
+        .ok_or_else(|| AppError::NotFound(format!("Lore-Eintrag {} nicht gefunden", id)))?;
+
+    // Try to read and parse the content file if it exists
+    let content_html = if let Some(ref path_str) = lore.content_path {
+        let path = std::path::Path::new(path_str);
+        if path.exists() {
+            match lore_service::parse_lore_file(path) {
+                Ok(Some(parsed)) => lore_service::markdown_to_html(&parsed.content),
+                _ => String::new(),
+            }
+        } else {
+            String::new()
+        }
+    } else {
+        String::new()
+    };
+
+    Ok(LoreEntryResponse {
+        id: lore.id,
+        title: lore.title,
+        lore_type: lore.lore_type,
+        content: content_html,
+        metadata: serde_json::from_str(&lore.metadata).ok(),
+        related_cards: serde_json::from_str(&lore.related_cards).unwrap_or_default(),
+    })
+}
+
+/// Read a lore entry's raw Markdown content from disk and return HTML
+#[command]
+pub fn get_lore_content(
+    app: tauri::AppHandle,
+    id: i64,
+) -> Result<String> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let lore = lore_repo::get_lore_entry_by_id(&db, id)?
+        .ok_or_else(|| AppError::NotFound(format!("Lore-Eintrag {} nicht gefunden", id)))?;
+
+    let content_path = lore.content_path
+        .ok_or_else(|| AppError::NotFound(format!("Lore-Eintrag {} hat keine Content-Datei", id)))?;
+
+    let path = std::path::Path::new(&content_path);
+    let file_content = std::fs::read_to_string(path)
+        .map_err(|e| AppError::Io(format!("Fehler beim Lesen von {}: {}", content_path, e)))?;
+
+    Ok(lore_service::markdown_to_html(&file_content))
+}
+
+/// Search lore entries by title
+#[command]
+pub fn search_lore(
+    app: tauri::AppHandle,
+    query: String,
+) -> Result<Vec<LoreEntryResponse>> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let entries = lore_repo::search_lore_entries(&db, &query)?
+        .into_iter()
+        .map(|l| LoreEntryResponse {
+            id: l.id,
+            title: l.title,
+            lore_type: l.lore_type,
+            content: l.content_path.unwrap_or_default(),
+            metadata: serde_json::from_str(&l.metadata).ok(),
+            related_cards: serde_json::from_str(&l.related_cards).unwrap_or_default(),
+        })
+        .collect();
+
+    Ok(entries)
+}
+
+// ─── PRICE COMMANDS ──────────────────────────────────────
+
+/// Refresh all card prices from Scryfall.
+#[command]
+pub async fn refresh_prices(
+    app: tauri::AppHandle,
+) -> Result<PriceRefreshResult> {
+    let state = app.state::<AppState>();
+
+    // Get all card IDs (sync, drop guard immediately)
+    let card_ids = {
+        let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+        card_repo::get_all_card_ids(&db)?
+    };
+
+    // Clone Scryfall client (it's Arc-based and thread-safe)
+    let scryfall = {
+        let client = state.scryfall_client.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+        client.clone()
+    };
+
+    // Process in batches
+    let mut result = PriceRefreshResult {
+        total: card_ids.len() as u64,
+        updated: 0,
+        failed: 0,
+        errors: vec![],
+    };
+
+    for chunk in card_ids.chunks(50) {
+        match scryfall.get_cards_by_collection(chunk).await {
+            Ok(cards) => {
+                let mut batch_errors: Vec<String> = Vec::new();
+                for card in &cards {
+                    let prices_json = if let Some(p) = &card.prices {
+                        serde_json::json!({
+                            "usd": p.usd,
+                            "usd_foil": p.usd_foil,
+                            "eur": p.eur,
+                            "eur_foil": p.eur_foil,
+                            "tix": p.tix,
+                        })
+                    } else {
+                        serde_json::json!({})
+                    };
+
+                    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+                    if let Err(e) = card_repo::update_card_prices(&db, &card.id, &prices_json) {
+                        batch_errors.push(format!("DB error for {}: {}", card.name, e));
+                    } else {
+                        result.updated += 1;
+                    }
+                }
+                let missing = chunk.len().saturating_sub(cards.len());
+                result.failed += missing as u64;
+                result.errors.extend(batch_errors);
+            }
+            Err(e) => {
+                result.failed += chunk.len() as u64;
+                result.errors.push(format!("Scryfall batch error: {}", e));
+            }
+        }
+
+        // Polite delay between batches
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    }
+
+    Ok(result)
+}
+
+/// Get current prices for a specific card from the database.
+#[command]
+pub fn get_card_prices(
+    app: tauri::AppHandle,
+    card_id: String,
+) -> Result<CardPricesResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    let card = card_repo::get_card_by_id(&db, &card_id)?
+        .ok_or_else(|| AppError::NotFound(format!("Karte '{}' nicht gefunden", card_id)))?;
+
+    let prices: serde_json::Value =
+        serde_json::from_str(&card.prices).unwrap_or_else(|_| serde_json::json!({}));
+
+    let get_price = |key: &str| -> Option<String> {
+        prices
+            .get(key)
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())
+            .map(String::from)
+    };
+
+    Ok(CardPricesResponse {
+        usd: get_price("usd"),
+        usd_foil: get_price("usd_foil"),
+        eur: get_price("eur"),
+        tix: get_price("tix"),
+    })
 }

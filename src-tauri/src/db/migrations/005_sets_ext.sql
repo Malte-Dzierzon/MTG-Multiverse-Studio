@@ -1,0 +1,4 @@
+-- Migration: Extend sets table with Scryfall fields
+-- Created: 2026-07-01
+-- Description: No additional columns needed - all fields are in 001_initial.sql
+-- Note: code, card_count, icon_svg_uri, scryfall_uri, collector_number_prefix are already in 001_initial.sql

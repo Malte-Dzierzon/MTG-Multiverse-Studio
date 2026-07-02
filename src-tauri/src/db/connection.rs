@@ -47,6 +47,8 @@ fn run_migrations(conn: &Connection) -> Result<()> {
         ("002_fts5", include_str!("migrations/002_fts5.sql")),
         ("003_deck_category", include_str!("migrations/003_deck_category.sql")),
         ("004_collection_ext", include_str!("migrations/004_collection_ext.sql")),
+        ("005_sets_ext", include_str!("migrations/005_sets_ext.sql")),
+        ("006_prices", include_str!("migrations/006_prices.sql")),
     ];
 
     for (name, sql) in migrations {
@@ -123,7 +125,7 @@ mod tests {
         assert!(cols.contains(&"keywords".to_string()));
         assert!(cols.contains(&"rarity".to_string()));
         assert!(cols.contains(&"set_id".to_string()));
-        assert!(cols.contains(&"image_uris".to_string()));
+        assert!(cols.contains(&"image_uris_json".to_string()));
         assert!(cols.contains(&"artist".to_string()));
         assert!(cols.contains(&"legalities".to_string()));
         assert!(cols.contains(&"prices".to_string()));

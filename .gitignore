@@ -28,3 +28,8 @@ dist/
 # Tauri build artifacts
 src-tauri/icons/icon.ico
 src-tauri/icons/icon.icns
+
+# SQLite database files (user data, too large for git)
+*.db
+*.db-shm
+*.db-wal

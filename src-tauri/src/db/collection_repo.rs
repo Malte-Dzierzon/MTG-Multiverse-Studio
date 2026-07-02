@@ -3,18 +3,9 @@
 //! Handles database operations for the `collection` table (user's card collection).
 //! Supports CRUD, pagination, search, and batch import.
 
+use crate::import_engine::collection_import::CollectionImportItem;
 use crate::models::{CollectionItemDb, ImportStats};
 use rusqlite::Result;
-
-/// A single item to import into the collection
-#[derive(Debug, Clone)]
-pub struct CollectionImportItem {
-    pub card_identifier: String, // card name or Scryfall ID
-    pub quantity: i32,
-    pub condition: String,
-    pub language: String,
-    pub is_foil: bool,
-}
 
 /// Add a card to collection (upsert — increases quantity if card already exists)
 pub fn add_to_collection(
@@ -22,12 +13,18 @@ pub fn add_to_collection(
     card_id: &str,
     quantity: i32,
     condition: &str,
+    language: &str,
+    is_foil: bool,
 ) -> Result<i64> {
     conn.execute(
-        "INSERT INTO collection (card_id, quantity, condition)
-         VALUES (?1, ?2, ?3)
-         ON CONFLICT(card_id) DO UPDATE SET quantity = quantity + ?2",
-        rusqlite::params![card_id, quantity, condition],
+        "INSERT INTO collection (card_id, quantity, condition, language, is_foil)
+         VALUES (?1, ?2, ?3, ?4, ?5)
+         ON CONFLICT(card_id) DO UPDATE SET
+            quantity = quantity + ?2,
+            condition = ?3,
+            language = ?4,
+            is_foil = ?5",
+        rusqlite::params![card_id, quantity, condition, language, is_foil as i32],
     )?;
     Ok(conn.last_insert_rowid())
 }

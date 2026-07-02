@@ -8,7 +8,7 @@
 //!
 //! Returns Vec<CollectionImportItem> for processing by collection_repo.
 
-use crate::utils::error::{AppError, Result};
+use std::fmt;
 
 /// A single item to import into the collection
 #[derive(Debug, Clone)]
@@ -19,6 +19,21 @@ pub struct CollectionImportItem {
     pub language: String,
     pub is_foil: bool,
 }
+
+/// Simple error type for collection import parsing
+#[derive(Debug)]
+pub struct ImportError(String);
+
+impl fmt::Display for ImportError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Import error: {}", self.0)
+    }
+}
+
+impl std::error::Error for ImportError {}
+
+/// Convenience alias for import parsing results
+pub type Result<T> = std::result::Result<T, ImportError>;
 
 /// Parse CSV text into collection import items.
 ///
@@ -162,17 +177,11 @@ pub fn parse_moxfield_json(json: &str) -> Result<Vec<CollectionImportItem>> {
     use serde_json::Value;
 
     let root: Value =
-        serde_json::from_str(json).map_err(|e| AppError::Json(format!("Moxfield parse error: {}", e)))?;
+        serde_json::from_str(json).map_err(|e| ImportError(format!("Moxfield parse error: {}", e)))?;
 
     let mut items = Vec::new();
 
     // Determine structure: "boards" wrapper or flat?
-    let boards = root
-        .get("boards")
-        .or_else(|| root.as_object().map(|_| &root))
-        .cloned()
-        .unwrap_or_default();
-
     if let Some(boards) = root.get("boards") {
         // Newer format: boards.mainboard is an array of {card: {name}, quantity}
         for board_name in &["mainboard", "sideboard", "maybeboard"] {
@@ -292,7 +301,7 @@ pub fn parse_archidekt_json(json: &str) -> Result<Vec<CollectionImportItem>> {
     use serde_json::Value;
 
     let root: Value = serde_json::from_str(json)
-        .map_err(|e| AppError::Json(format!("Archidekt parse error: {}", e)))?;
+        .map_err(|e| ImportError(format!("Archidekt parse error: {}", e)))?;
 
     let mut items = Vec::new();
 

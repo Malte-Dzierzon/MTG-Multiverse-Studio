@@ -143,6 +143,54 @@ impl ScryfallClient {
         let set: ScryfallSet = response.json().await?;
         Ok(set)
     }
+
+    /// Fetch multiple cards by their Scryfall IDs using the /cards/collection endpoint.
+    ///
+    /// Accepts up to 75 IDs per call (Scryfall's limit).
+    /// Returns the cards that were found; missing IDs are silently skipped.
+    pub async fn get_cards_by_collection(&self, ids: &[String]) -> Result<Vec<ScryfallCard>> {
+        if ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let _permit = self.rate_limiter.acquire().await;
+
+        // Build the identifiers payload
+        let identifiers: Vec<serde_json::Value> = ids
+            .iter()
+            .map(|id| serde_json::json!({"id": id}))
+            .collect();
+
+        let body = serde_json::json!({"identifiers": identifiers});
+
+        let url = format!("{}/cards/collection", self.base_url);
+        let response = self
+            .http_client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            return Err(AppError::Unknown(format!(
+                "Scryfall collection API error {} for batch of {} cards",
+                response.status(),
+                ids.len()
+            )));
+        }
+
+        let result: ScryfallList = response.json().await?;
+
+        // Cache each card
+        {
+            let mut cache = self.cache.lock().unwrap();
+            for card in &result.data {
+                cache.put(card.id.clone(), card.clone());
+            }
+        }
+
+        Ok(result.data)
+    }
 }
 
 impl Clone for ScryfallClient {

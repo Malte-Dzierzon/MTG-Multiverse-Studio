@@ -10,10 +10,14 @@ PRAGMA foreign_keys = ON;
 -- ============================================
 CREATE TABLE IF NOT EXISTS sets (
     id TEXT PRIMARY KEY,
+    code TEXT NOT NULL,
     name TEXT NOT NULL,
     set_type TEXT,
     released_at DATE,
-    collector_number_prefix TEXT
+    collector_number_prefix TEXT,
+    card_count INTEGER,
+    icon_svg_uri TEXT,
+    scryfall_uri TEXT
 );
 
 -- ============================================
@@ -21,21 +25,29 @@ CREATE TABLE IF NOT EXISTS sets (
 -- ============================================
 CREATE TABLE IF NOT EXISTS cards (
     id TEXT PRIMARY KEY,
-    oracle_id TEXT UNIQUE,
+    oracle_id TEXT,
     name TEXT NOT NULL,
     mana_cost TEXT,
     cmc REAL,
     type_line TEXT,
     oracle_text TEXT,
+    power TEXT,
+    toughness TEXT,
     colors TEXT DEFAULT '[]',
     color_identity TEXT DEFAULT '[]',
     keywords TEXT DEFAULT '[]',
-    rarity TEXT,
-    set_id TEXT REFERENCES sets(id),
-    image_uris TEXT,
-    artist TEXT,
     legalities TEXT DEFAULT '{}',
-    prices TEXT DEFAULT '{}'
+    image_uris_json TEXT DEFAULT '{}',
+    prices TEXT DEFAULT '{}',
+    released_at TEXT,
+    set_id TEXT,
+    set_name TEXT,
+    set_code TEXT,
+    collector_number TEXT,
+    rarity TEXT,
+    flavor_text TEXT,
+    artist TEXT,
+    layout TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_cards_name ON cards(name);
@@ -78,6 +90,7 @@ CREATE TABLE IF NOT EXISTS deck_cards (
     card_id TEXT NOT NULL REFERENCES cards(id),
     quantity INTEGER DEFAULT 1,
     position INTEGER,
+    category TEXT DEFAULT 'mainboard',
     UNIQUE(deck_id, card_id)
 );
 

@@ -2,8 +2,7 @@
 //! 
 //! Handles database operations for the `decks` and `deck_cards` tables.
 
-use rusqlite::{named_params, params, Result};
-use serde::{Deserialize, Serialize};
+use rusqlite::{params, Result};
 
 /// Deck metadata from SQLite
 #[derive(Debug, Clone)]
