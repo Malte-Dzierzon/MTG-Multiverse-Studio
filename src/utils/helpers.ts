@@ -113,6 +113,24 @@ export function getRarityBg(rarity: string): string {
 }
 
 /**
+ * Get color for mana symbol
+ */
+export function getManaColor(color: string): string {
+  const colors: Record<string, string> = {
+    W: '#f9d4a0',
+    U: '#1e7abf',
+    B: '#2a2a2a',
+    R: '#d43b3b',
+    G: '#3a7d32',
+    C: '#a0a0a0',
+    multicolor: '#c9a84c',
+    colorless: '#a0a0a0',
+    land: '#8b7355',
+  };
+  return colors[color] || '#888888';
+}
+
+/**
  * Debounce function
  */
 export function debounce<T extends (...args: any[]) => any>(

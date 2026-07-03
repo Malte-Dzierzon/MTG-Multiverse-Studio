@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { Button } from '../components/ui/Button';
 import { CardPreview } from '../components/ui/CardPreview';
-import { SearchInput } from '../components/ui/SearchInput';
-import { ChevronLeft, ChevronRight, Trash2, Save, Download, Copy, Edit, Loader2, X, Sparkles, Archive, FlaskConical, BookOpen, Settings } from 'lucide-react';
-import { getDeck, getCollection, updateDeck, deleteDeck, goldfishDeck } from '../services/api';
-import { cn, formatNumber } from '../utils/helpers';
+import { ChevronLeft, Loader2, X, Sparkles, Archive, FlaskConical, BookOpen, Trash2 as Trash2Icon, Download as DownloadIcon, Sparkles as SparklesIcon } from 'lucide-react';
+import { getDeck, getCollection, deleteDeck, goldfishDeck } from '../services/api';
+import { cn } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DeckDetailPage() {
@@ -17,9 +16,9 @@ export default function DeckDetailPage() {
   const [showGoldfish, setShowGoldfish] = useState(false);
   const [goldfishResult, setGoldfishResult] = useState<any>(null);
 
-  const { data: deck, isLoading: deckLoading, refetch: refetchDeck } = useQuery({
+  const { data: deck, isLoading: deckLoading } = useQuery({
     queryKey: ['deck', id],
-    queryFn: () => getDeck(id!),
+    queryFn: () => getDeck(Number(id!)),
     enabled: !!id,
   });
 
@@ -31,7 +30,7 @@ export default function DeckDetailPage() {
   const handleGoldfish = async () => {
     setShowGoldfish(true);
     try {
-      const result = await goldfishDeck(id!);
+      const result = await goldfishDeck(Number(id!));
       setGoldfishResult(result);
     } catch (error) {
       console.error('Goldfish failed:', error);
@@ -41,7 +40,7 @@ export default function DeckDetailPage() {
   const handleDeleteDeck = async () => {
     if (window.confirm('Deck wirklich löschen?')) {
       try {
-        await deleteDeck(id!);
+        await deleteDeck(Number(id!));
         navigate('/deckbuilder');
       } catch (error) {
         console.error('Failed to delete deck:', error);
@@ -89,13 +88,13 @@ export default function DeckDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" icon={<Sparkles className="h-4 w-4" />} onClick={handleGoldfish} loading={showGoldfish}>
+              <Button variant="secondary" size="sm" icon={<SparklesIcon className="h-4 w-4" />} onClick={handleGoldfish} loading={showGoldfish}>
                 Goldfisch
               </Button>
-              <Button variant="secondary" size="sm" icon={<Download className="h-4 w-4" }}>
+              <Button variant="secondary" size="sm" icon={<DownloadIcon className="h-4 w-4" />}>
                 Exportieren
               </Button>
-              <Button variant="danger" size="sm" icon={<Trash2 className="h-4 w-4" />} onClick={handleDeleteDeck}>
+              <Button variant="danger" size="sm" icon={<Trash2Icon className="h-4 w-4" />} onClick={handleDeleteDeck}>
                 Löschen
               </Button>
             </div>
@@ -285,9 +284,9 @@ export default function DeckDetailPage() {
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="font-semibold">Zug {turn.turn}</h4>
                               <div className="flex items-center gap-2">
-                                {Object.entries(turn.mana_available).map(([color, amount]) => (
+                                {Object.entries(turn.mana_available).map(([color, amount]: [string, unknown]) => (
                                   <span key={color} className="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-parchment)] text-[var(--color-bg-base)]">
-                                    {color}: {amount}
+                                    {color}: {String(amount)}
                                   </span>
                                 ))}
                               </div>

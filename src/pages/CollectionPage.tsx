@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { Button } from '../components/ui/Button';
 import { CardPreview } from '../components/ui/CardPreview';
 import { SearchInput } from '../components/ui/SearchInput';
-import { Search, Plus, Trash2, User, Ruler, TrendingUp, Save, Loader2, X, Archive, Filter, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Loader2, X, Filter, Download, ChevronDown, ChevronUp, Archive, Edit } from 'lucide-react';
 import { searchCards, getCollection, addToCollection, removeFromCollection, importAllCards, getImportStatus } from '../services/api';
-import { cn, formatNumber } from '../utils/helpers';
-import { CONDITIONS, type Condition } from '../types';
+import { formatNumber } from '../utils/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CollectionPage() {
@@ -22,7 +21,7 @@ export default function CollectionPage() {
   const [importProgress, setImportProgress] = useState<{progress: number; current_set?: string} | null>(null);
 
   // Search cards
-  const { data: searchResults, isLoading: searchLoading, refetch: refetchSearch } = useQuery({
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ['search', searchQuery],
     queryFn: () => searchCards(searchQuery),
     enabled: searchQuery.length >= 2,
@@ -131,10 +130,10 @@ export default function CollectionPage() {
             </div>
 
             <div className="flex items-center gap-2 md:ml-auto">
-              <Button variant="glass" size="sm" icon={Filter} onClick={() => setShowFilters(!showFilters)}>
+              <Button variant="glass" size="sm" icon={<Filter className="h-4 w-4" />} onClick={() => setShowFilters(!showFilters)}>
                 Filter
               </Button>
-              <Button variant="secondary" size="sm" icon={Download} onClick={handleImportAll} loading={importRunning}>
+              <Button variant="secondary" size="sm" icon={<Download className="h-4 w-4" />} onClick={handleImportAll} loading={importRunning}>
                 Vollimport
               </Button>
             </div>
@@ -248,7 +247,7 @@ export default function CollectionPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={viewMode === 'grid' ? ChevronDown : ChevronUp}
+                  icon={viewMode === 'grid' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                   onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
                 />
               </div>
@@ -315,11 +314,11 @@ export default function CollectionPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             {getCollectionQuantity(card.id) > 0 ? (
-                              <Button variant="ghost" size="sm" icon={Trash2} onClick={(e) => { e.stopPropagation(); handleRemoveFromCollection(card.id); }}>
+                              <Button variant="ghost" size="sm" icon={<Trash2 className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); handleRemoveFromCollection(card.id); }}>
                                 Entfernen
                               </Button>
                             ) : (
-                              <Button variant="primary" size="sm" icon={Plus} onClick={(e) => { e.stopPropagation(); handleAddToCollection(card); }}>
+                              <Button variant="primary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); handleAddToCollection(card); }}>
                                 Hinzufügen
                               </Button>
                             )}
@@ -340,7 +339,7 @@ export default function CollectionPage() {
                 Meine Sammlung
               </h2>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" icon={viewMode === 'grid' ? ChevronDown : ChevronUp} onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} />
+                <Button variant="ghost" size="sm" icon={viewMode === 'grid' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />} onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} />
               </div>
             </div>
 
@@ -354,7 +353,7 @@ export default function CollectionPage() {
                 <div>
                   <p className="text-[var(--color-text-muted)] mb-2">Sammlung ist leer</p>
                   <p className="text-sm text-[var(--color-text-muted)] mb-4">Suche nach Karten und füge sie hinzu, oder starte einen Vollimport</p>
-                  <Button variant="primary" icon={Download} onClick={handleImportAll} loading={importRunning}>
+                  <Button variant="primary" icon={<Download className="h-4 w-4" />} onClick={handleImportAll} loading={importRunning}>
                     Vollimport starten
                   </Button>
                 </div>
@@ -411,8 +410,8 @@ export default function CollectionPage() {
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" icon={Edit} onClick={(e) => { e.stopPropagation(); /* Edit modal */ }} />
-                            <Button variant="danger" size="sm" icon={Trash2} onClick={(e) => { e.stopPropagation(); handleRemoveFromCollection(item.card.id); }} />
+                            <Button variant="ghost" size="sm" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); /* Edit modal */ }} />
+                            <Button variant="danger" size="sm" icon={<Trash2 className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); handleRemoveFromCollection(item.card.id); }} />
                           </div>
                         </GlassPanel>
                       </motion.div>

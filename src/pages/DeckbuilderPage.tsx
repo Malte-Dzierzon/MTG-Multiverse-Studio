@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
-import { GlassPanel } from '../components/ui/GlassPanel';
-import { Button } from '../components/ui/Button';
+import { useState } from 'react';
 import { CardPreview } from '../components/ui/CardPreview';
 import { SearchInput } from '../components/ui/SearchInput';
-import { Search, Plus, Trash2, User, Ruler, TrendingUp, Save, Loader2, X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { searchCards } from '../services/api';
-import { cn, formatNumber, calculateDeckStats } from '../utils/helpers';
-import { MANA_COLORS } from '../types';
 import { useQuery } from '@tanstack/react-query';
 
 export default function DeckbuilderPage() {

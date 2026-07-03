@@ -2,9 +2,8 @@ import { cn } from '../../utils/cn';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Archive, FlaskConical, BookOpen, Settings, Command, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Sparkles, Archive, FlaskConical, BookOpen, Settings, Command, X } from 'lucide-react';
 import { TABS, type TabId } from '../../types';
-import { SearchInput, CommandPaletteTrigger } from '../ui/SearchInput';
 import { GlassPanel } from '../ui/GlassPanel';
 import { Button } from '../ui/Button';
 

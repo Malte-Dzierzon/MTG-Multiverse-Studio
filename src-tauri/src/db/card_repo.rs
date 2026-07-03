@@ -1,8 +1,8 @@
 //! Card Repository
-//! 
+//!
 //! Handles database operations for the `cards` table.
 
-use crate::models::{CardDb, CardResponse, CardPricesResponse, CardLegalitiesResponse};
+use crate::models::{CardDb, CardLegalitiesResponse, CardPricesResponse, CardResponse};
 use rusqlite::{named_params, params, Result};
 use serde_json;
 
@@ -12,11 +12,11 @@ pub fn insert_card(conn: &rusqlite::Connection, card: &CardDb) -> Result<usize> 
         r#"
         INSERT INTO cards (
             id, oracle_id, name, mana_cost, cmc, type_line, oracle_text,
-            colors, color_identity, keywords, rarity, set_id, image_uris_json, artist,
+            colors, color_identity, keywords, rarity, set_id, set_code, image_uris_json, artist,
             legalities, prices
         ) VALUES (
             :id, :oracle_id, :name, :mana_cost, :cmc, :type_line, :oracle_text,
-            :colors, :color_identity, :keywords, :rarity, :set_id, :image_uris, :artist,
+            :colors, :color_identity, :keywords, :rarity, :set_id, :set_code, :image_uris, :artist,
             :legalities, :prices
         )
         "#,
@@ -33,6 +33,7 @@ pub fn insert_card(conn: &rusqlite::Connection, card: &CardDb) -> Result<usize> 
             ":keywords": serde_json::to_string(&card.keywords).unwrap_or_else(|_| "[]".into()),
             ":rarity": &card.rarity,
             ":set_id": &card.set_id,
+            ":set_code": &card.set_code,
             ":image_uris_json": &card.image_uris_json,
             ":artist": &card.artist,
             ":legalities": &card.legalities,
@@ -47,7 +48,7 @@ pub fn get_card_by_id(conn: &rusqlite::Connection, id: &str) -> Result<Option<Ca
         r#"
         SELECT
             id, oracle_id, name, mana_cost, cmc, type_line, oracle_text,
-            colors, color_identity, keywords, rarity, set_id, image_uris_json, artist,
+            colors, color_identity, keywords, rarity, set_id, set_code, image_uris_json, artist,
             legalities, prices
         FROM cards WHERE id = :id
         "#,
@@ -72,7 +73,7 @@ pub fn search_cards_by_name(
         r#"
         SELECT
             id, oracle_id, name, mana_cost, cmc, type_line, oracle_text,
-            colors, color_identity, keywords, rarity, set_id, image_uris_json, artist,
+            colors, color_identity, keywords, rarity, set_id, set_code, image_uris_json, artist,
             legalities, prices
         FROM cards WHERE name LIKE :name
         LIMIT :limit
@@ -82,12 +83,13 @@ pub fn search_cards_by_name(
     let like_pattern = format!("%{}%", name);
     let limit_val = limit.unwrap_or(200) as i64;
 
-    let rows = stmt.query_map(named_params! {
-        ":name": like_pattern,
-        ":limit": limit_val,
-    }, |row| {
-        CardDb::from_row(row)
-    })?;
+    let rows = stmt.query_map(
+        named_params! {
+            ":name": like_pattern,
+            ":limit": limit_val,
+        },
+        |row| CardDb::from_row(row),
+    )?;
 
     let mut cards = Vec::new();
     for row in rows {
@@ -96,7 +98,6 @@ pub fn search_cards_by_name(
 
     Ok(cards)
 }
-
 /// Search cards using FTS5 full-text search
 pub fn search_cards_fts(
     conn: &rusqlite::Connection,
@@ -107,7 +108,7 @@ pub fn search_cards_fts(
         r#"
         SELECT
             c.id, c.oracle_id, c.name, c.mana_cost, c.cmc, c.type_line, c.oracle_text,
-            c.colors, c.color_identity, c.keywords, c.rarity, c.set_id, c.image_uris_json, c.artist,
+            c.colors, c.color_identity, c.keywords, c.rarity, c.set_id, c.set_code, c.image_uris_json, c.artist,
             c.legalities, c.prices
         FROM cards_fts f
         JOIN cards c ON c.rowid = f.rowid
@@ -119,12 +120,13 @@ pub fn search_cards_fts(
 
     let limit_val = limit as i64;
 
-    let rows = stmt.query_map(named_params! {
-        ":query": query,
-        ":limit": limit_val,
-    }, |row| {
-        CardDb::from_row(row)
-    })?;
+    let rows = stmt.query_map(
+        named_params! {
+            ":query": query,
+            ":limit": limit_val,
+        },
+        |row| CardDb::from_row(row),
+    )?;
 
     let mut cards = Vec::new();
     for row in rows {
@@ -133,7 +135,6 @@ pub fn search_cards_fts(
 
     Ok(cards)
 }
-
 /// Count total cards in the database
 pub fn count_cards(conn: &rusqlite::Connection) -> Result<u64> {
     let count: u64 = conn.query_row("SELECT COUNT(*) FROM cards", [], |row| row.get(0))?;
@@ -261,5 +262,25 @@ pub fn update_card_prices(
     conn.execute(
         "UPDATE cards SET prices = ?1 WHERE id = ?2",
         rusqlite::params![prices_str, card_id],
+    )
+}
+
+/// Insert a price history entry for a card
+pub fn insert_price_history(
+    conn: &rusqlite::Connection,
+    card_id: &str,
+    source: &str,
+    currency: &str,
+    price_low: Option<f64>,
+    price_avg: Option<f64>,
+    price_high: Option<f64>,
+    price_trend: Option<f64>,
+) -> Result<usize> {
+    conn.execute(
+        r#"
+        INSERT INTO price_history (card_id, source, currency, price_low, price_avg, price_high, price_trend)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+        "#,
+        rusqlite::params![card_id, source, currency, price_low, price_avg, price_high, price_trend],
     )
 }

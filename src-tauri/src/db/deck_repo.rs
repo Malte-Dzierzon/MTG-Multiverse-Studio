@@ -270,6 +270,39 @@ pub fn get_deck_cards(
     Ok(cards)
 }
 
+/// Update the quantity of a specific card in a deck
+pub fn update_deck_card_quantity(
+    conn: &rusqlite::Connection,
+    deck_id: i64,
+    card_id: &str,
+    quantity: i32,
+) -> Result<usize> {
+    if quantity <= 0 {
+        return remove_card_from_deck(conn, deck_id, card_id);
+    }
+    conn.execute(
+        "UPDATE deck_cards SET quantity = ?1 WHERE deck_id = ?2 AND card_id = ?3",
+        params![quantity, deck_id, card_id],
+    )
+}
+
+/// Reorder deck cards by providing a new ordered list of card IDs
+pub fn reorder_deck_cards(
+    conn: &rusqlite::Connection,
+    deck_id: i64,
+    card_ids: &[String],
+) -> Result<usize> {
+    let mut affected = 0;
+    for (position, card_id) in card_ids.iter().enumerate() {
+        let updated = conn.execute(
+            "UPDATE deck_cards SET position = ?1 WHERE deck_id = ?2 AND card_id = ?3",
+            params![position as i32, deck_id, card_id],
+        )?;
+        affected += updated;
+    }
+    Ok(affected)
+}
+
 /// Count total cards in a deck (sum of quantities)
 pub fn count_deck_cards(
     conn: &rusqlite::Connection,

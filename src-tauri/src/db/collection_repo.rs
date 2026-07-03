@@ -15,16 +15,20 @@ pub fn add_to_collection(
     condition: &str,
     language: &str,
     is_foil: bool,
+    notes: Option<&str>,
+    acquired_at: Option<&str>,
 ) -> Result<i64> {
     conn.execute(
-        "INSERT INTO collection (card_id, quantity, condition, language, is_foil)
-         VALUES (?1, ?2, ?3, ?4, ?5)
+        "INSERT INTO collection (card_id, quantity, condition, language, is_foil, notes, acquired_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
          ON CONFLICT(card_id) DO UPDATE SET
             quantity = quantity + ?2,
             condition = ?3,
             language = ?4,
-            is_foil = ?5",
-        rusqlite::params![card_id, quantity, condition, language, is_foil as i32],
+            is_foil = ?5,
+            notes = ?6,
+            acquired_at = ?7",
+        rusqlite::params![card_id, quantity, condition, language, is_foil as i32, notes, acquired_at],
     )?;
     Ok(conn.last_insert_rowid())
 }
@@ -119,17 +123,18 @@ pub fn search_collection(
     Ok(items)
 }
 
-/// Update quantity, condition, and notes of a collection item
+/// Update quantity, condition, notes, and acquired_at of a collection item
 pub fn update_collection_item(
     conn: &rusqlite::Connection,
     id: i64,
     quantity: i32,
     condition: &str,
     notes: Option<&str>,
+    acquired_at: Option<&str>,
 ) -> Result<usize> {
     conn.execute(
-        "UPDATE collection SET quantity = ?1, condition = ?2, notes = ?3 WHERE id = ?4",
-        rusqlite::params![quantity, condition, notes, id],
+        "UPDATE collection SET quantity = ?1, condition = ?2, notes = ?3, acquired_at = ?4 WHERE id = ?5",
+        rusqlite::params![quantity, condition, notes, acquired_at, id],
     )
 }
 

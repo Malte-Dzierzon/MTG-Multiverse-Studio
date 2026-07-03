@@ -32,6 +32,8 @@ pub struct AddToCollectionArgs {
     pub condition: Option<String>,
     pub language: Option<String>,
     pub is_foil: Option<bool>,
+    pub notes: Option<String>,
+    pub acquired_at: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,6 +47,25 @@ pub struct CreateDeckArgs {
 pub struct GoldfishDeckArgs {
     pub deck_id: i64,
     pub turns: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateDeckCardQuantityArgs {
+    pub deck_id: i64,
+    pub card_id: String,
+    pub quantity: i32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReorderDeckCardsArgs {
+    pub deck_id: i64,
+    pub card_ids: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ValidateDeckArgs {
+    pub deck_id: i64,
+    pub format: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -112,8 +133,10 @@ pub fn add_to_collection(
     let condition = args.condition.unwrap_or_else(|| "nm".to_string());
     let language = args.language.unwrap_or_else(|| "en".to_string());
     let is_foil = args.is_foil.unwrap_or(false);
+    let notes = args.notes;
+    let acquired_at = args.acquired_at;
 
-    collection_repo::add_to_collection(&db, &args.card_id, quantity, &condition, &language, is_foil)?;
+    collection_repo::add_to_collection(&db, &args.card_id, quantity, &condition, &language, is_foil, notes.as_deref(), acquired_at.as_deref())?;
 
     Ok(CollectionItemResponse {
         id: 0,
@@ -122,8 +145,8 @@ pub fn add_to_collection(
         condition,
         language,
         is_foil,
-        notes: None,
-        acquired_at: None,
+        notes,
+        acquired_at,
         added_at: chrono::Utc::now().naive_utc().to_string(),
     })
 }
@@ -293,6 +316,46 @@ pub fn goldfish_deck(
 
     let turns = args.turns.unwrap_or(3);
     deck_service::goldfish_deck(&db, args.deck_id, turns)
+}
+
+/// Menge einer Karte im Deck aktualisieren
+#[command]
+pub fn update_deck_card_quantity(
+    app: tauri::AppHandle,
+    args: UpdateDeckCardQuantityArgs,
+) -> Result<DeckResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    deck_repo::update_deck_card_quantity(&db, args.deck_id, &args.card_id, args.quantity)?;
+
+    deck_service::get_deck_with_cards(&db, args.deck_id)
+}
+
+/// Karten in einem Deck neu ordnen (Drag & Drop)
+#[command]
+pub fn reorder_deck_cards(
+    app: tauri::AppHandle,
+    args: ReorderDeckCardsArgs,
+) -> Result<DeckResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    deck_repo::reorder_deck_cards(&db, args.deck_id, &args.card_ids)?;
+
+    deck_service::get_deck_with_cards(&db, args.deck_id)
+}
+
+/// Deck-Legalität gegen ein Format prüfen (explizites Format)
+#[command]
+pub fn check_deck_legality(
+    app: tauri::AppHandle,
+    args: ValidateDeckArgs,
+) -> Result<DeckValidationResponse> {
+    let state = app.state::<AppState>();
+    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    deck_service::validate_deck_format(&db, args.deck_id, &args.format)
 }
 
 /// Lore-Einträge laden (aus DB + optional aus assets/stories/ Verzeichnis)
@@ -521,7 +584,7 @@ pub fn search_collection(
     Ok(items)
 }
 
-/// Update a collection item's quantity, condition, and notes
+/// Update a collection item's quantity, condition, notes, and acquired_at
 #[command]
 pub fn update_collection_item(
     app: tauri::AppHandle,
@@ -529,6 +592,7 @@ pub fn update_collection_item(
     quantity: Option<i32>,
     condition: Option<String>,
     notes: Option<String>,
+    acquired_at: Option<String>,
 ) -> Result<CollectionItemResponse> {
     let state = app.state::<AppState>();
     let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
@@ -538,8 +602,9 @@ pub fn update_collection_item(
 
     let new_qty = quantity.unwrap_or(existing.quantity);
     let new_cond = condition.unwrap_or(existing.condition);
+    let new_acquired_at = acquired_at.or(existing.acquired_at);
 
-    collection_repo::update_collection_item(&db, id, new_qty, &new_cond, notes.as_deref())?;
+    collection_repo::update_collection_item(&db, id, new_qty, &new_cond, notes.as_deref(), new_acquired_at.as_deref())?;
 
     let updated = collection_repo::get_collection_item(&db, id)?
         .ok_or_else(|| AppError::NotFound("Item disappeared after update".into()))?;
@@ -785,4 +850,198 @@ pub fn get_card_prices(
         eur: get_price("eur"),
         tix: get_price("tix"),
     })
+}
+
+/// Market Price Response for external APIs (Cardmarket, TCGPlayer)
+#[derive(Debug, serde::Serialize)]
+pub struct MarketPriceResponse {
+    pub source: String,      // "cardmarket" or "tcgplayer"
+    pub card_name: String,
+    pub set_name: String,
+    pub currency: String,
+    pub low: Option<f64>,
+    pub avg: Option<f64>,
+    pub high: Option<f64>,
+    pub trend: Option<f64>,
+}
+
+/// Fetch a card's market price from Cardmarket (MKM)
+#[command]
+pub async fn get_cardmarket_price(
+    app: tauri::AppHandle,
+    card_name: String,
+    set_code: String,
+) -> Result<Option<MarketPriceResponse>> {
+    let state = app.state::<AppState>();
+    let client = state.cardmarket_client.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    if !client.is_configured() {
+        return Ok(None);
+    }
+
+    let price = client.get_price_for_card(&card_name, &set_code).await?;
+
+    Ok(price.map(|p| MarketPriceResponse {
+        source: "cardmarket".to_string(),
+        card_name: p.card_name,
+        set_name: p.set_name,
+        currency: p.currency,
+        low: p.low,
+        avg: p.avg,
+        high: p.high,
+        trend: p.trend,
+    }))
+}
+
+/// Fetch a card's market price from TCGPlayer
+#[command]
+pub async fn get_tcgplayer_price(
+    app: tauri::AppHandle,
+    card_name: String,
+    set_code: String,
+) -> Result<Option<MarketPriceResponse>> {
+    let state = app.state::<AppState>();
+    let mut client = state.tcgplayer_client.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+
+    if !client.is_configured() {
+        return Ok(None);
+    }
+
+    let price = client.get_market_price(&card_name, &set_code).await?;
+
+    Ok(price.map(|p| MarketPriceResponse {
+        source: "tcgplayer".to_string(),
+        card_name: p.product_name,
+        set_name: "".to_string(), // TCGPlayer doesn't return set name directly
+        currency: p.currency,
+        low: p.low_price,
+        avg: p.market_price,
+        high: p.high_price,
+        trend: p.mid_price,
+    }))
+}
+
+/// Refresh prices from ALL sources (Scryfall + Cardmarket + TCGPlayer)
+#[command]
+pub async fn refresh_all_prices(
+    app: tauri::AppHandle,
+) -> Result<PriceRefreshResult> {
+    let state = app.state::<AppState>();
+
+    // Get all card IDs
+    let card_ids = {
+        let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+        card_repo::get_all_card_ids(&db)?
+    };
+
+    let scryfall = {
+        let client = state.scryfall_client.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+        client.clone()
+    };
+
+    let cardmarket = {
+        let client = state.cardmarket_client.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+        client.clone()
+    };
+
+    let mut tcgplayer = {
+        let client = state.tcgplayer_client.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+        client.clone()
+    };
+
+    let mut result = PriceRefreshResult {
+        total: card_ids.len() as u64,
+        updated: 0,
+        failed: 0,
+        errors: vec![],
+    };
+
+    for chunk in card_ids.chunks(50) {
+        // 1. Scryfall prices
+        match scryfall.get_cards_by_collection(chunk).await {
+            Ok(cards) => {
+                let mut batch_errors: Vec<String> = Vec::new();
+                for card in &cards {
+                    let prices_json = if let Some(p) = &card.prices {
+                        serde_json::json!({
+                            "usd": p.usd,
+                            "usd_foil": p.usd_foil,
+                            "eur": p.eur,
+                            "eur_foil": p.eur_foil,
+                            "tix": p.tix,
+                        })
+                    } else {
+                        serde_json::json!({})
+                    };
+
+                    let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+                    if let Err(e) = card_repo::update_card_prices(&db, &card.id, &prices_json) {
+                        batch_errors.push(format!("DB error for {}: {}", card.name, e));
+                    } else {
+                        result.updated += 1;
+                    }
+                }
+                let missing = chunk.len().saturating_sub(cards.len());
+                result.failed += missing as u64;
+                result.errors.extend(batch_errors);
+            }
+            Err(e) => {
+                result.failed += chunk.len() as u64;
+                result.errors.push(format!("Scryfall batch error: {}", e));
+            }
+        }
+
+        // 2. Cardmarket prices (if configured)
+        if cardmarket.is_configured() {
+            for card_id in chunk {
+                let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+                if let Some(card) = card_repo::get_card_by_id(&db, card_id)? {
+                    // Try to get Cardmarket price
+                    let set_code = card.set_code.clone();
+                    if let Ok(Some(mkt_price)) = cardmarket.get_price_for_card(&card.name, &set_code).await {
+                        // Store in price_history table
+                        let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+                        let _ = card_repo::insert_price_history(
+                            &db,
+                            card_id,
+                            "cardmarket",
+                            "EUR",
+                            mkt_price.low,
+                            mkt_price.avg,
+                            mkt_price.high,
+                            mkt_price.trend,
+                        );
+                    }
+                }
+            }
+        }
+
+        // 3. TCGPlayer prices (if configured)
+        if tcgplayer.is_configured() {
+            for card_id in chunk {
+                let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+                if let Some(card) = card_repo::get_card_by_id(&db, card_id)? {
+                    let set_code = card.set_code.clone();
+                    if let Ok(Some(mkt_price)) = tcgplayer.get_market_price(&card.name, &set_code).await {
+                        let db = state.db.lock().map_err(|e| AppError::Unknown(e.to_string()))?;
+                        let _ = card_repo::insert_price_history(
+                            &db,
+                            card_id,
+                            "tcgplayer",
+                            "USD",
+                            mkt_price.low_price,
+                            mkt_price.market_price,
+                            mkt_price.high_price,
+                            mkt_price.mid_price,
+                        );
+                    }
+                }
+            }
+        }
+
+        // Polite delay between batches
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    }
+
+    Ok(result)
 }

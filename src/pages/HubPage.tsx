@@ -1,7 +1,6 @@
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { Button } from '../components/ui/Button';
-import { CardPreview, DeckStackPreview } from '../components/ui/CardPreview';
-import { Sparkles, Archive, FlaskConical, BookOpen, Settings, ArrowRight, Search, Plus, Shuffle } from 'lucide-react';
+import { Sparkles, Archive, FlaskConical, BookOpen, ArrowRight, Search, Plus, Shuffle } from 'lucide-react';
 import { TABS } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -137,7 +136,7 @@ export default function HubPage() {
                   <p className="text-[var(--color-text-muted)] text-sm mb-6 flex-1">
                     {feature.description}
                   </p>
-                  <Button variant="ghost" fullWidth icon={ArrowRight} iconPosition="right">
+                  <Button variant="ghost" fullWidth icon={<ArrowRight className="h-4 w-4" />} iconPosition="right">
                     Erkunden
                   </Button>
                 </GlassPanel>
@@ -160,7 +159,7 @@ export default function HubPage() {
                 <h2 className="heading-2 font-serif">Letzte Decks</h2>
                 <p className="text-[var(--color-text-muted)] text-sm mt-1">Deine kürzlich bearbeiteten Decklisten</p>
               </div>
-              <Button variant="glass" icon={Plus} iconPosition="right" onClick={() => navigate('/deckbuilder')}>
+              <Button variant="glass" icon={<Plus className="h-4 w-4" />} iconPosition="right" onClick={() => navigate('/deckbuilder')}>
                 Neues Deck
               </Button>
             </div>

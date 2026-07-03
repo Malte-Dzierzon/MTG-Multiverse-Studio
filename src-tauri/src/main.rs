@@ -13,13 +13,15 @@ mod import_engine;
 
 use tauri::Manager;
 use std::sync::Mutex;
+use crate::market::cardmarket::CardmarketClient;
+use crate::market::tcgplayer::TcgplayerClient;
 
 /// Application state shared across commands
 struct AppState {
     db: Mutex<rusqlite::Connection>,
     scryfall_client: Mutex<scryfall::client::ScryfallClient>,
-    cardmarket_client: Mutex<market::cardmarket::CardmarketClient>,
-    tcgplayer_client: Mutex<market::tcgplayer::TcgplayerClient>,
+    cardmarket_client: Mutex<CardmarketClient>,
+    tcgplayer_client: Mutex<TcgplayerClient>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -39,8 +41,8 @@ pub fn run() {
             let scryfall_client = scryfall::client::ScryfallClient::new();
             
             // Initialize market API clients (they gracefully handle missing env vars)
-            let cardmarket_client = market::cardmarket::CardmarketClient::new();
-            let tcgplayer_client = market::tcgplayer::TcgplayerClient::new();
+            let cardmarket_client = CardmarketClient::new();
+            let tcgplayer_client = TcgplayerClient::new();
 
             // Manage app state
             app.manage(AppState {
@@ -63,9 +65,12 @@ pub fn run() {
             commands::add_card_to_deck,
             commands::remove_card_from_deck,
             commands::update_deck,
+            commands::update_deck_card_quantity,
+            commands::reorder_deck_cards,
             commands::delete_deck,
             commands::search_decks,
             commands::validate_deck,
+            commands::check_deck_legality,
             commands::goldfish_deck,
             commands::load_lore_entries,
             commands::get_lore_entry,

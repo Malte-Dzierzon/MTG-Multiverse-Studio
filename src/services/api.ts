@@ -151,6 +151,10 @@ export async function loadLoreEntries(args?: LoadLoreArgs): Promise<LoreEntry[]>
   return invoke('load_lore_entries', { args: args || {} });
 }
 
+export async function searchLore(args: { query: string }): Promise<LoreEntry[]> {
+  return invoke('search_lore', { args });
+}
+
 export async function getLoreEntry(id: number): Promise<LoreEntryResponse> {
   return invoke('get_lore_entry', { args: { id: String(id) } });
 }

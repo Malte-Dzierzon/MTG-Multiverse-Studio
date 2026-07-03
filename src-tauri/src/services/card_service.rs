@@ -154,6 +154,7 @@ pub fn scryfall_card_to_carddb(
         keywords: json!(api_card.keywords),
         rarity: api_card.rarity.clone(),
         set_id: set_id.to_string(),
+        set_code: api_card.set.clone(),
         image_uris_json,
         artist: Some(api_card.artist.clone()),
         legalities: legalities_json,

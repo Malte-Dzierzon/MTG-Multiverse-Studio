@@ -10,6 +10,7 @@ import DeckDetailPage from './pages/DeckDetailPage';
 import LorePage from './pages/LorePage';
 import LoreDetailPage from './pages/LoreDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import DesignShowcase from './pages/DesignShowcase';
 import './styles/globals.css';
 
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ function AppRoutes() {
           <Route path="lore/:id" element={<LoreDetailPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
+        <Route path="/design" element={<DesignShowcase />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>

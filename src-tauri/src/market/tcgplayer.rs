@@ -84,6 +84,18 @@ pub struct TcgplayerClient {
     token: Option<String>,
 }
 
+impl Clone for TcgplayerClient {
+    fn clone(&self) -> Self {
+        Self {
+            http_client: self.http_client.clone(),
+            base_url: self.base_url,
+            api_key: self.api_key.clone(),
+            api_secret: self.api_secret.clone(),
+            token: self.token.clone(),
+        }
+    }
+}
+
 impl TcgplayerClient {
     /// Create a new TCGPlayer client from environment variables.
     ///

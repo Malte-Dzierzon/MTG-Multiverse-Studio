@@ -1,5 +1,5 @@
 import { cn } from '../../utils/cn';
-import { formatManaCost, parseManaSymbols, getManaColor } from '../../utils/helpers';
+import { formatManaCost } from '../../utils/helpers';
 import type { CardResponse } from '../../types';
 
 export interface CardPreviewProps {
@@ -38,7 +38,6 @@ export function CardPreview({
   const sizeClass = SIZE_CLASSES[size];
   const textClass = SIZE_TEXT_CLASSES[size];
   
-  const manaSymbols = parseManaSymbols(card.mana_cost);
   const displayMana = formatManaCost(card.mana_cost);
   
   const rarityColor = {

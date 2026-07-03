@@ -18,6 +18,8 @@ pub struct CollectionImportItem {
     pub condition: String,
     pub language: String,
     pub is_foil: bool,
+    pub notes: Option<String>,
+    pub acquired_at: Option<String>,
 }
 
 /// Simple error type for collection import parsing
@@ -80,6 +82,16 @@ pub fn parse_csv(text: &str) -> Result<Vec<CollectionImportItem>> {
             .map(|s| matches!(*s, "1" | "true" | "yes" | "foil" | "y"))
             .unwrap_or(false);
         // field[5] = set_code (ignored — used only for resolution hints)
+        // field[6] = notes (optional)
+        // field[7] = acquired_at (optional)
+        let notes = fields
+            .get(6)
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string());
+        let acquired_at = fields
+            .get(7)
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string());
 
         items.push(CollectionImportItem {
             card_identifier: name,
@@ -87,6 +99,8 @@ pub fn parse_csv(text: &str) -> Result<Vec<CollectionImportItem>> {
             condition,
             language,
             is_foil,
+            notes,
+            acquired_at,
         });
     }
 
@@ -143,6 +157,8 @@ pub fn parse_mtga(text: &str) -> Result<Vec<CollectionImportItem>> {
                 condition: "nm".to_string(),
                 language: "en".to_string(),
                 is_foil,
+                notes: None,
+                acquired_at: None,
             });
         }
     }
@@ -232,6 +248,8 @@ fn extract_moxfield_cards(board: &serde_json::Value, items: &mut Vec<CollectionI
                         condition: "nm".to_string(),
                         language: "en".to_string(),
                         is_foil,
+                        notes: None,
+                        acquired_at: None,
                     });
                 }
             }
@@ -247,11 +265,7 @@ fn extract_moxfield_cards(board: &serde_json::Value, items: &mut Vec<CollectionI
                     .get("finishes")
                     .and_then(|f| f.as_array())
                     .map(|finishes| finishes.iter().any(|f| f.as_str() == Some("foil")))
-                    .or_else(|| {
-                        entry
-                            .get("isFoil")
-                            .and_then(|f| f.as_bool())
-                    })
+                    .or_else(|| entry.get("isFoil").and_then(|f| f.as_bool()))
                     .unwrap_or(false);
 
                 items.push(CollectionImportItem {
@@ -260,6 +274,8 @@ fn extract_moxfield_cards(board: &serde_json::Value, items: &mut Vec<CollectionI
                     condition: "nm".to_string(),
                     language: "en".to_string(),
                     is_foil,
+                    notes: None,
+                    acquired_at: None,
                 });
             }
         }
@@ -344,6 +360,8 @@ pub fn parse_archidekt_json(json: &str) -> Result<Vec<CollectionImportItem>> {
                     condition: "nm".to_string(),
                     language: "en".to_string(),
                     is_foil,
+                    notes: None,
+                    acquired_at: None,
                 });
             }
         }
