@@ -1,22 +1,29 @@
-# Environment
-.env
-.venv*/
+# Rust build output
+/target/
+**/*.rs.bk
 
-# Rust build
-/target
+# Cargo lock - bei Binarys tracken, bei Libs ignorieren
+# Da dies ein Binary ist (mtg-tui), Cargo.lock NICHT ignorieren
 
-# SQLite (user data, zu groß für git)
-*.db
-*.db-shm
-*.db-wal
-
-# Exportierte Decks
-decks/
-
-# OS / IDE
-.DS_Store
-.vscode/
+# IDE / Editor
 .idea/
+.vscode/
 *.swp
-__pycache__/
-*.pyc
+*.swo
+*~
+.DS_Store
+
+# Env / Secrets
+.env
+.env.*
+
+# Lokale Datenbanken / dynamisch generierte Daten
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+/data/
+
+# Logs / Temp
+*.log
+*.tmp
