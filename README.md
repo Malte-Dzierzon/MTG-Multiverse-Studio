@@ -2,7 +2,7 @@
 ## Quickstart
 
 ```bash
-git clone https://github.com/<your-user>/mtg-multiverse-studio.git
+git clone https://github.com/Malte-Dzierzon/MTG-Multiverse-Studio.git
 cd mtg-multiverse-studio
 ./run.sh
 ```
