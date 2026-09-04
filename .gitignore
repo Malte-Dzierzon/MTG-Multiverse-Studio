@@ -21,7 +21,10 @@
 *.sqlite
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
 *.db-journal
+assets/*.db*
 /data/
 
 # Logs / Temp
