@@ -1,4 +1,0 @@
--- Migration: Collection Schema Extension
--- Created: 2026-07-01
--- Description: language, foil, acquired_at columns are already in 001_initial.sql
--- This file is kept for migration history tracking only

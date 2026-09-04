@@ -1,110 +1,58 @@
-# MTG Multiverse Studio
+# MTG Multiverse Studio — TUI
 
-<div align="center">
-<table width="80%">
-  <tr>
-    <td width="25%" valign="center"><b>MTG Multiverse Studio</b></td>
-    <td width="50%" valign="top">A local-first Magic: The Gathering desktop app — collection manager, deck builder, Artbook & lore-narrative. No cloud, no tracking.</td>
-    <td width="25%" align="center" valign="center">██░░░░░░░░░░ 20%</td>
-  </tr>
-</table>
+Ein lokales Terminal-Dashboard für Magic: The Gathering in **Rust**:
+Kartensuche mit live gestreamten Kartenbildern (Kitty Graphics Protocol),
+Deck-Library mit Cover-Vorschau und Manakurve. Keine Cloud, kein Tracking.
 
-[![GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
-[![Rust](https://img.shields.io/badge/Rust-native-orange.svg)](https://www.rust-lang.org/)
-[![Tauri](https://img.shields.io/badge/Tauri-v2-ff8400.svg)](https://tauri.app/)
-[![React](https://img.shields.io/badge/React-18+-61dafb.svg?logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-native-blue.svg)](https://www.typescriptlang.org/)
+## Features
 
----
+| Modus            | Was er leistet                                                              |
+|------------------|-----------------------------------------------------------------------------|
+| **Deck Library** | Decks anlegen/löschen, Cover-Bild der stärksten Karte, Manakurve, Wert      |
+| **Deck View**    | Kartentabelle mit gleitender Auswahl, Live-Kartenbild unter dem Cursor      |
+| **Search**       | FTS-Suche über 38k Karten, exakte Treffer zuerst, Vorschlagsliste           |
+| **Card View**    | Großes Bild + Preise, Rarity, Set, Legalities                               |
+| **Import**       | Decklisten einfügen (Text/Arena/CSV), `Ctrl+S` importiert                   |
+| **Auto-Theme**   | Farben werden per OSC-Query vom Terminal gelesen (Dark/Light + Palette)     |
 
-## Grundidee
+Bilder werden **live von Scryfall gestreamt** — nur Memory-Cache, nichts landet auf der Platte.
+Ohne Kitty-Terminal läuft die App komplett ohne Bilder (Graceful Degradation).
 
-Eine Desktop-Anwendung die deine gesamte Magic-Kollektion lokal verwaltet — von der Kartendatenbank ueber den Deckbau bis zum interaktiven Artbook und Lore-Narrativ. Keine Cloud. Kein Tracking. Alles bleibt auf deinem Rechner, alle Daten sind offline verfuegbar.
-
----
-
-## Features im Ueberblick
-
-| Seite              | Was sie leistet                                      |
-|--------------------|------------------------------------------------------|
-| **Sammlung**       | Digitale Kartensammlung mit Scryfall-Anbindung und Mengenverfolgung        |
-| **Deck-Labor**     | Drag-and-Drop Deck-Editor, Mana-Kurve-Charting und Wahrscheinlichkeitsberechnungen |
-| **Lore-Atlas**     | Interaktiver Artbook + Storytelling-Viewer direkt verknueft mit Kartendaten (Karte -> Plane-Artwork -> Hintergrundgeschichte) |
-
----
-
-## Tech-Stack
-
-| Ebene    | Technologie                    | Zweck                          |
-|----------|--------------------------------|--------------------------------|
-| Framework| [Tauri v2](https://tauri.app/)  | Native Desktop-Shell (~5MB)    |
-| Frontend | React + TypeScript             | Komponenten-basierter UI       |
-| Build    | Vite                           | Ultra-schneller HMR & Bundling |
-| Styling  | Tailwind CSS                   | Utility-first + Dark/Light     |
-| State    | Zustand                        | TS-native, kein Redux           |
-| Backend  | Rust (native in Tauri)         | SQLite, HTTP, KI-Inferenz      |
-
----
-
-## Projektstruktur
-
-```
-mtg-multiverse-studio/
-├── assets/              # Medien & Rohdaten (Bilder, Lore-Texte)
-├── Documentation/       # ROADMAP.md, AGENT.md, etc.
-├── src/                 # Frontend: React + TypeScript
-│   ├── components/      # UI-Komponenten nach Modul sortiert
-│   ├── hooks/           # Custom Hooks
-│   ├── store/           # Zustand-State
-│   ├── pages/           # Route-Komponenten
-│   └── services/        # API-Clients (Scryfall, DB)
-├── src-tauri/           # Backend: Rust + Native-Anbindung
-│   ├── resources/       # LLM-Modelle & Prompt-Vorlagen
-│   └── src/             # db/, ki/, scryfall/
-├── package.json         # Frontend Dependencies & Scripts
-├── tsconfig.json        # TypeScript-Konfiguration
-└── vite.config.ts       # Vite Build-Tool (HMR, Port 1420)
-```
-
----
-
-## Entwickler-Leitfaden
-
-### Voraussetzungen
-
-| Tool       | Version                              |
-|------------|--------------------------------------|
-| Rust       | 1.70+ (`rustup install stable`)      |
-| Node.js    | LTS (20.x) via nvm                   |
-| Tauri CLI v2 | `npm install -g @tauri-apps/cli@latest` |
-| Git        | 2.30+                                |
-
-### Befehle
+## Setup
 
 ```bash
-npm install              # Frontend Dependencies installieren
-cargo build --release    # Backend kompilieren (Release-Build)
-npm run tauri dev        # Live: Frontend + Backend gleichzeitig
-npx tauri build          # Vollstaendiger Desktop-Build (exe/dmg/AppImage)
+./run.sh                        # build + start
+./run.sh --db /pfad/zur/db     # eigene Datenbank
 ```
 
-### Architektur
+Voraussetzungen: Rust (`rustup`), [Kitty](https://sw.kovidgoyal.net/kitty/) für Kartenbilder.
 
-Frontend kommuniziert **NIEMALS** direkt mit dem Internet. Alle Datenflüsse laufen über die Tauri-Bridge:
+## Tasten
+
+| Kontext       | Taste                                              |
+|---------------|----------------------------------------------------|
+| Global        | `q` quit · `/` Suche · `g` Agent (bald) · `Ctrl+D` quit |
+| Home          | `j/k` Deck wählen · `Enter` öffnen · `n` neu · `i` Import · `e` Export · `x` löschen |
+| Deck View     | `j/k` Karte · `Enter` Details · `a` +1 ins Deck · `d` entfernen |
+| Card View     | `a` ins aktive Deck                                |
+| Import        | Liste einfügen · `Ctrl+S` übernehmen · `Esc` abbrechen |
+
+## Architektur
 
 ```
-┌──────────────┐      ┌─────────────────────┐      ┌──────────────┐
-│  Frontend    │      │   Rust Backend      │      │ SQLite DB    │
-│  (React/TS)  ├─────►│  Tauri Bridge + Cmd ├────► │  (lokal)     │
-└──────────────┘      └─────────────────────┘      └──────────────┘
-                           │
-                           ├──► Scryfall API (on demand)
-                           │
-                           └──► LLM Inferenz (GGUF, On-Device)
+src/
+├── main.rs    # Event-Loop, Bild-Placements
+├── app.rs     # State-Maschine, Keybindings, Animation
+├── ui.rs      # ratatui-Layouts (transparent, theme-getrieben)
+├── db.rs      # rusqlite: Suche, Decks, Import/Export
+├── images.rs  # Loader-Thread: Scryfall → JPEG → RGB (Memory-LRU)
+├── kitty.rs   # Kitty-Graphics-Protocol: transmit/place/delete
+└── theme.rs   # OSC 10/11/4 Auto-Theme (Terminal-Farben)
 ```
 
----
+Der Agent-Harness (OpenCode Zen, OpenAI-kompatibel) folgt als nächster Schritt.
 
 ## Rechtliches
 
-Dieses Projekt ist ein Fan-Projekt unter der GPL-v3-Lizenz. Es steht in keiner Verbindung zu Wizards of the Coast LLC oder den Inhabern der "Magic: The Gathering"-Markenrechte. Unterliegt der [Wizards Fan Policy](https://www.wizards.com/legal/wizards-fan-policy).
+Fan-Projekt. Keine Verbindung zu Wizards of the Coast LLC.
+[Wizards Fan Policy](https://www.wizards.com/legal/wizards-fan-policy).

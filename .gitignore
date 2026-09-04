@@ -1,35 +1,22 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-src-tauri/target/
-
-# Environment files
+# Environment
 .env
-.env.local
+.venv*/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Rust build
+/target
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Rust build artifacts
-src-tauri/target/
-
-# Frontend build
-dist/
-
-# Tauri build artifacts
-src-tauri/icons/icon.ico
-src-tauri/icons/icon.icns
-
-# SQLite database files (user data, too large for git)
+# SQLite (user data, zu groß für git)
 *.db
 *.db-shm
 *.db-wal
+
+# Exportierte Decks
+decks/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+__pycache__/
+*.pyc
